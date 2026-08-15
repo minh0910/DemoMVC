@@ -1,0 +1,54 @@
+name: Build & Deploy to MonsterASP.NET
+
+# Tự động chạy mỗi khi push lên nhánh main, hoặc bấm chạy tay trong tab Actions
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  FTP_HOST: site84980.siteasp.net
+  FTP_DIR: /wwwroot
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish DemoMVC.csproj --configuration Release --output ./publish --runtime win-x86
+
+      - name: Cài lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Deploy lên vuleminh.runasp.net qua FTP
+        env:
+          FTP_USER: ${{ secrets.SERVER_USERNAME }}
+          LFTP_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+        run: |
+          # app_offline.htm: IIS tạm dừng ứng dụng để ghi đè được các file .dll đang chạy
+          echo '<h1>Website đang được cập nhật, vui lòng quay lại sau ít giây...</h1>' > app_offline.htm
+          lftp --env-password -u "$FTP_USER" "$FTP_HOST" <<EOF
+          set cmd:fail-exit yes
+          # FTPS của hosting dùng chứng chỉ thiếu chuỗi CA: vẫn mã hoá nhưng bỏ kiểm tra chứng chỉ
+          set ssl:verify-certificate no
+          set net:max-retries 3
+          set net:timeout 30
+          put app_offline.htm -o $FTP_DIR/app_offline.htm
+          mirror --reverse --no-perms --verbose --parallel=4 ./publish/ $FTP_DIR/
+          rm $FTP_DIR/app_offline.htm
+          bye
+          EOF
