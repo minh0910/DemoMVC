@@ -1,0 +1,123 @@
+@{
+    ViewData["Title"] = "3. Kiến trúc .NET MVC";
+}
+
+<article class="lesson">
+    <span class="badge text-bg-primary">Mục 3</span>
+    <h1 class="mt-2">Tìm hiểu về kiến trúc .NET MVC</h1>
+    <p class="lead">
+        <strong>MVC (Model – View – Controller)</strong> là mẫu kiến trúc chia ứng dụng thành 3 phần tách biệt,
+        mỗi phần một nhiệm vụ (Separation of Concerns), giúp code dễ đọc, dễ test và dễ bảo trì.
+    </p>
+
+    <div class="row g-3 my-2">
+        <div class="col-md-4">
+            <div class="card h-100 border-success"><div class="card-body">
+                <h5 class="card-title text-success">Model</h5>
+                <p class="card-text">Dữ liệu và nghiệp vụ: các class C# (ví dụ <code>SinhVien</code>), quy tắc kiểm tra dữ liệu, truy cập database.</p>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-primary"><div class="card-body">
+                <h5 class="card-title text-primary">View</h5>
+                <p class="card-text">Giao diện: file <code>.cshtml</code> (HTML + cú pháp Razor <code>@@</code>) hiển thị dữ liệu cho người dùng.</p>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-danger"><div class="card-body">
+                <h5 class="card-title text-danger">Controller</h5>
+                <p class="card-text">Điều phối: nhận request, gọi Model xử lý, chọn View và truyền dữ liệu cho View.</p>
+            </div></div>
+        </div>
+    </div>
+
+    <h2>1. Luồng xử lý một request</h2>
+    <div class="flow my-3">
+        <span class="step">Trình duyệt gửi<br /><code>GET /SanPham/ChiTiet/5</code></span><span class="arrow">→</span>
+        <span class="step">Kestrel web server</span><span class="arrow">→</span>
+        <span class="step">Middleware pipeline</span><span class="arrow">→</span>
+        <span class="step">Routing chọn<br />Controller + Action</span><span class="arrow">→</span>
+        <span class="step">Model binding<br /><code>id = 5</code></span><span class="arrow">→</span>
+        <span class="step">Action gọi Model</span><span class="arrow">→</span>
+        <span class="step">Trả View + dữ liệu</span><span class="arrow">→</span>
+        <span class="step">Razor render HTML</span><span class="arrow">→</span>
+        <span class="step">Response về trình duyệt</span>
+    </div>
+    <ol>
+        <li><strong>Kestrel</strong> là web server tích hợp nhận HTTP request (có thể đứng sau IIS/Nginx).</li>
+        <li>Request đi qua chuỗi <strong>middleware</strong> (HTTPS redirect, static files, routing, authorization…).</li>
+        <li><strong>Routing</strong> so khớp URL với route để tìm Controller và Action.</li>
+        <li><strong>Model binding</strong> lấy dữ liệu từ route, query string, form… gán vào tham số của action.</li>
+        <li><strong>Action</strong> xử lý, trả về một <code>IActionResult</code> (View, Redirect, Json, NotFound…).</li>
+        <li><strong>View engine Razor</strong> kết hợp View + Layout + dữ liệu thành HTML gửi về trình duyệt.</li>
+    </ol>
+
+    <h2>2. Cấu trúc thư mục dự án</h2>
+<pre class="code">DemoMVC/
+├── Controllers/          <span class="cm"># Các Controller: HomeController.cs, DinhTuyenController.cs...</span>
+├── Models/               <span class="cm"># Các class dữ liệu: SinhVien.cs, ErrorViewModel.cs</span>
+├── Views/
+│   ├── Home/             <span class="cm"># View của HomeController (tên thư mục = tên controller)</span>
+│   │   └── Index.cshtml  <span class="cm"># tên file = tên action</span>
+│   ├── Shared/           <span class="cm"># View dùng chung: _Layout.cshtml, Error.cshtml</span>
+│   ├── _ViewImports.cshtml  <span class="cm"># using + TagHelper dùng chung cho mọi view</span>
+│   └── _ViewStart.cshtml    <span class="cm"># chạy trước mỗi view, khai báo Layout mặc định</span>
+├── wwwroot/              <span class="cm"># File tĩnh: css, js, lib (bootstrap, jquery), ảnh</span>
+├── Properties/launchSettings.json  <span class="cm"># cấu hình khi chạy local (port, môi trường)</span>
+├── appsettings.json      <span class="cm"># cấu hình ứng dụng (chuỗi kết nối DB...)</span>
+├── Program.cs            <span class="cm"># điểm khởi động: đăng ký service + cấu hình pipeline</span>
+└── DemoMVC.csproj        <span class="cm"># file project: target framework, package</span></pre>
+
+    <h2>3. Program.cs – trái tim của ứng dụng</h2>
+<pre class="code">var builder = WebApplication.CreateBuilder(args);
+
+<span class="cm">// (1) Đăng ký service vào Dependency Injection container</span>
+builder.Services.AddControllersWithViews();
+
+var app = builder.Build();
+
+<span class="cm">// (2) Cấu hình middleware pipeline – thứ tự rất quan trọng</span>
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+app.UseHttpsRedirection();
+app.UseRouting();
+app.UseAuthorization();
+app.MapStaticAssets();
+
+<span class="cm">// (3) Khai báo route mặc định</span>
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();</pre>
+
+    <h2>4. Quy ước (Convention over Configuration)</h2>
+    <ul>
+        <li>Controller là class kế thừa <code>Controller</code>, tên kết thúc bằng <code>Controller</code>: <code>HomeController</code> → URL dùng <code>Home</code>.</li>
+        <li>Mỗi phương thức <code>public</code> trong controller là một <strong>action</strong>.</li>
+        <li><code>return View()</code> trong <code>HomeController.Index</code> sẽ tìm <code>Views/Home/Index.cshtml</code>, nếu không có thì tìm <code>Views/Shared/Index.cshtml</code>.</li>
+        <li>View mặc định dùng Layout <code>Views/Shared/_Layout.cshtml</code> (khai báo trong <code>_ViewStart.cshtml</code>).</li>
+    </ul>
+
+    <h2>5. Ưu điểm và hạn chế</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <ul class="list-group">
+                <li class="list-group-item list-group-item-success">Tách biệt giao diện – xử lý – dữ liệu</li>
+                <li class="list-group-item list-group-item-success">Dễ unit test Controller và Model</li>
+                <li class="list-group-item list-group-item-success">Nhiều người làm song song (front-end làm View, back-end làm Controller)</li>
+                <li class="list-group-item list-group-item-success">Kiểm soát hoàn toàn HTML và URL (thân thiện SEO)</li>
+            </ul>
+        </div>
+        <div class="col-md-6 mt-3 mt-md-0">
+            <ul class="list-group">
+                <li class="list-group-item list-group-item-warning">Nhiều file, nhiều thư mục với dự án nhỏ</li>
+                <li class="list-group-item list-group-item-warning">Cần nắm quy ước đặt tên để framework tìm đúng</li>
+                <li class="list-group-item list-group-item-warning">Controller dễ bị "phình to" nếu dồn hết logic vào</li>
+            </ul>
+        </div>
+    </div>
+</article>
