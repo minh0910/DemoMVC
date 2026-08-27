@@ -1,0 +1,48 @@
+@using Microsoft.AspNetCore.Routing
+@{
+    ViewData["Title"] = "Kết quả định tuyến";
+    var endpoint = Context.GetEndpoint() as RouteEndpoint;
+}
+
+<div class="lesson">
+    <h1>Kết quả định tuyến</h1>
+    <p class="lead">@ViewBag.GiaiThich</p>
+
+    <table class="table table-bordered w-auto">
+        <tbody>
+            <tr><th>URL</th><td><code>@Context.Request.Method @Context.Request.Path@Context.Request.QueryString</code></td></tr>
+            <tr><th>Route template đã khớp</th><td><code>@endpoint?.RoutePattern.RawText</code></td></tr>
+            <tr><th>Controller</th><td>@ViewContext.RouteData.Values["controller"]</td></tr>
+            <tr><th>Action</th><td>@ViewContext.RouteData.Values["action"]</td></tr>
+            @foreach (var rv in ViewContext.RouteData.Values.Where(v => v.Key is not "controller" and not "action"))
+            {
+                <tr><th>Route value <code>@rv.Key</code></th><td>@rv.Value</td></tr>
+            }
+            @foreach (var q in Context.Request.Query)
+            {
+                <tr><th>Query <code>@q.Key</code></th><td>@q.Value</td></tr>
+            }
+            <tr>
+                <th>ModelState.IsValid</th>
+                <td>
+                    @if (ViewContext.ModelState.IsValid)
+                    {
+                        <span class="text-success">true</span>
+                    }
+                    else
+                    {
+                        <span class="text-danger">false</span>
+                        <ul class="mb-0">
+                            @foreach (var e in ViewContext.ModelState.Where(m => m.Value!.Errors.Count > 0))
+                            {
+                                <li><code>@e.Key</code>: @string.Join("; ", e.Value!.Errors.Select(x => x.ErrorMessage))</li>
+                            }
+                        </ul>
+                    }
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a class="btn btn-primary" asp-controller="DinhTuyen" asp-action="Index">← Quay lại bài Định tuyến</a>
+</div>

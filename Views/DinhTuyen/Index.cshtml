@@ -1,0 +1,194 @@
+@{
+    ViewData["Title"] = "4. Định tuyến";
+}
+
+<article class="lesson">
+    <span class="badge text-bg-primary">Mục 4</span>
+    <h1 class="mt-2">Tìm hiểu về định tuyến (Routing) trong .NET MVC</h1>
+    <p class="lead">
+        <strong>Routing</strong> là cơ chế ánh xạ một URL tới <strong>Controller</strong> và <strong>Action</strong> sẽ xử lý nó.
+        ASP.NET Core MVC có 2 cách: <strong>định tuyến theo quy ước</strong> (conventional routing, khai báo trong <code>Program.cs</code>)
+        và <strong>định tuyến bằng thuộc tính</strong> (attribute routing, dùng <code>[Route]</code>).
+    </p>
+
+    <h2>1. Cấu trúc URL trong MVC</h2>
+    <p>Route mặc định khai báo trong <code>Program.cs</code>:</p>
+<pre class="code">app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");</pre>
+    <table class="table table-bordered">
+        <thead class="table-light"><tr><th>Thành phần</th><th>Ý nghĩa</th></tr></thead>
+        <tbody>
+            <tr><td><code>{controller=Home}</code></td><td>Segment 1 là tên controller (bỏ hậu tố <em>Controller</em>). Không có thì mặc định <code>Home</code>.</td></tr>
+            <tr><td><code>{action=Index}</code></td><td>Segment 2 là tên action (phương thức). Không có thì mặc định <code>Index</code>.</td></tr>
+            <tr><td><code>{id?}</code></td><td>Segment 3 là tham số tuỳ chọn (dấu <code>?</code>), gán vào tham số <code>id</code> của action.</td></tr>
+            <tr><td><code>?tab=mo-ta</code></td><td>Query string – cũng được gán vào tham số cùng tên của action.</td></tr>
+        </tbody>
+    </table>
+
+    <p>Phân tích URL <code>https://localhost:7197/DinhTuyen/ChiTiet/5?tab=mo-ta</code>:</p>
+    <div class="flow mb-3">
+        <span class="step">Giao thức + host + port<br /><code>https://localhost:7197</code></span>
+        <span class="step">controller<br /><code>DinhTuyen</code></span>
+        <span class="step">action<br /><code>ChiTiet</code></span>
+        <span class="step">id<br /><code>5</code></span>
+        <span class="step">query string<br /><code>tab=mo-ta</code></span>
+    </div>
+
+    <table class="table table-sm table-striped">
+        <thead><tr><th>URL</th><th>Controller</th><th>Action</th><th>id</th></tr></thead>
+        <tbody>
+            <tr><td><code>/</code></td><td>Home</td><td>Index</td><td>null</td></tr>
+            <tr><td><code>/DinhTuyen</code></td><td>DinhTuyen</td><td>Index</td><td>null</td></tr>
+            <tr><td><code>/DinhTuyen/ChiTiet</code></td><td>DinhTuyen</td><td>ChiTiet</td><td>null</td></tr>
+            <tr><td><code>/dinhtuyen/chitiet/5</code></td><td>DinhTuyen</td><td>ChiTiet</td><td>5 <small class="text-muted">(không phân biệt hoa thường)</small></td></tr>
+        </tbody>
+    </table>
+
+    <div class="demo-box">
+        <strong>Chạy thử:</strong>
+        <a asp-controller="DinhTuyen" asp-action="ChiTiet">/DinhTuyen/ChiTiet</a> ·
+        <a asp-controller="DinhTuyen" asp-action="ChiTiet" asp-route-id="5">/DinhTuyen/ChiTiet/5</a> ·
+        <a asp-controller="DinhTuyen" asp-action="ChiTiet" asp-route-id="5" asp-route-tab="mo-ta">/DinhTuyen/ChiTiet/5?tab=mo-ta</a> ·
+        <a href="/dinhtuyen/chitiet/5">/dinhtuyen/chitiet/5</a>
+    </div>
+
+    <h3>Tạo link đúng route bằng Tag Helper / Url.Action</h3>
+<pre class="code">&lt;a asp-controller="DinhTuyen" asp-action="ChiTiet" asp-route-id="5"&gt;Chi tiết&lt;/a&gt;
+<span class="cm">&lt;!-- sinh ra: &lt;a href="/DinhTuyen/ChiTiet/5"&gt; --&gt;</span>
+
+@@Url.Action("SanPham", "DinhTuyen", new { id = 7 })
+<span class="cm">&lt;!-- sinh ra: /san-pham/7 (vì action SanPham dùng [Route]) --&gt;</span></pre>
+    <p>Kết quả thực tế: <code>@Url.Action("SanPham", "DinhTuyen", new { id = 7 })</code>. Nên dùng Tag Helper thay vì viết cứng URL, khi đổi route thì link tự cập nhật.</p>
+
+    <h2>2. Lỗi khi truy cập URL trong MVC</h2>
+    <table class="table table-bordered align-middle">
+        <thead class="table-light"><tr><th>Tình huống</th><th>Lỗi</th><th>Nguyên nhân / cách xử lý</th><th>Thử</th></tr></thead>
+        <tbody>
+            <tr>
+                <td>Sai tên controller</td><td><span class="badge text-bg-danger">404</span></td>
+                <td>Không có class <code>KhongCoController</code>. Kiểm tra chính tả, class phải <code>public</code> và kế thừa <code>Controller</code>.</td>
+                <td><a href="/KhongCo/Index">/KhongCo/Index</a></td>
+            </tr>
+            <tr>
+                <td>Sai tên action</td><td><span class="badge text-bg-danger">404</span></td>
+                <td>Controller có nhưng không có phương thức public tên <code>KhongCoAction</code>.</td>
+                <td><a href="/DinhTuyen/KhongCoAction">/DinhTuyen/KhongCoAction</a></td>
+            </tr>
+            <tr>
+                <td>Vi phạm ràng buộc route</td><td><span class="badge text-bg-danger">404</span></td>
+                <td>Route <code>san-pham/{id:int}</code> yêu cầu số nguyên, <code>abc</code> không khớp.</td>
+                <td><a href="/san-pham/abc">/san-pham/abc</a></td>
+            </tr>
+            <tr>
+                <td>Gọi action có <code>[Route]</code> bằng URL mặc định</td><td><span class="badge text-bg-danger">404</span></td>
+                <td>Action đã gắn attribute route thì <strong>không</strong> còn truy cập được qua route mặc định. Phải dùng <code>/san-pham/5</code>.</td>
+                <td><a href="/DinhTuyen/SanPham/5">/DinhTuyen/SanPham/5</a></td>
+            </tr>
+            <tr>
+                <td>Sai phương thức HTTP</td><td><span class="badge text-bg-warning">405</span></td>
+                <td>
+                    Action chỉ nhận <code>[HttpPost]</code> nhưng gửi bằng phương thức khác.
+                    <small class="text-muted d-block">Lưu ý: ở môi trường Development, <code>MapStaticAssets</code> thêm endpoint dự phòng <code>{**path:file}</code> cho GET
+                        nên gõ URL trên trình duyệt sẽ ra 404; ở Production sẽ là 405.</small>
+                </td>
+                <td>
+                    <a href="/dinh-tuyen/chi-post">GET</a> ·
+                    <button type="button" class="btn btn-sm btn-outline-warning" id="btn-put">Gửi PUT</button>
+                    <span id="kq-put" class="fw-bold"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>Tham số sai kiểu</td><td><span class="badge text-bg-secondary">200</span></td>
+                <td>Route mặc định không ràng buộc kiểu nên vẫn khớp, nhưng model binding thất bại: <code>id = null</code>, <code>ModelState.IsValid = false</code>. Cần kiểm tra ModelState.</td>
+                <td><a href="/DinhTuyen/ChiTiet/abc">/DinhTuyen/ChiTiet/abc</a></td>
+            </tr>
+            <tr>
+                <td>Không tìm thấy View</td><td><span class="badge text-bg-dark">500</span></td>
+                <td><code>InvalidOperationException: The view 'ThieuView' was not found</code>. Tạo file <code>Views/DinhTuyen/ThieuView.cshtml</code> hoặc chỉ định tên view.</td>
+                <td><a href="/DinhTuyen/ThieuView">/DinhTuyen/ThieuView</a></td>
+            </tr>
+            <tr>
+                <td>Hai action trùng route</td><td><span class="badge text-bg-dark">500</span></td>
+                <td><code>AmbiguousMatchException</code>: nhiều endpoint cùng khớp. Đổi route hoặc phân biệt bằng <code>[HttpGet]</code>/<code>[HttpPost]</code>.</td>
+                <td>–</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Hiển thị trang lỗi thân thiện</h3>
+    <p>Mặc định lỗi 404/405 chỉ trả về trang trắng. Dự án này thêm middleware sau vào <code>Program.cs</code> để chuyển tới action <code>HomeController.Loi</code>:</p>
+<pre class="code">app.UseStatusCodePagesWithReExecute("/Home/Loi", "?code={0}");
+
+<span class="cm">// Lỗi 500 (exception) ở môi trường Production</span>
+app.UseExceptionHandler("/Home/Error");</pre>
+
+    <h2>3. Cơ chế định tuyến với [Route]</h2>
+    <p>Attribute routing đặt route ngay trên controller/action, cho URL thân thiện (SEO) và linh hoạt hơn route mặc định.</p>
+<pre class="code">public class DinhTuyenController : Controller
+{
+    [Route("san-pham/{id:int}")]                  <span class="cm">// /san-pham/5</span>
+    public IActionResult SanPham(int id) { ... }
+
+    [Route("tin-tuc/{nam:int:min(2000)}/{slug}")]  <span class="cm">// /tin-tuc/2026/hoc-mvc</span>
+    public IActionResult TinTuc(int nam, string slug) { ... }
+
+    [Route("gioi-thieu")]                         <span class="cm">// nhiều route cho 1 action</span>
+    [Route("about")]
+    public IActionResult GioiThieu() { ... }
+
+    [Route("trang/{so:int=1}")]                   <span class="cm">// giá trị mặc định</span>
+    public IActionResult Trang(int so) { ... }
+
+    [HttpPost("dinh-tuyen/chi-post")]             <span class="cm">// route + giới hạn phương thức POST</span>
+    public IActionResult ChiPost() { ... }
+}
+
+[Route("cua-hang")]                               <span class="cm">// tiền tố chung cho cả controller</span>
+public class CuaHangController : Controller
+{
+    [HttpGet("")]                   <span class="cm">// /cua-hang</span>
+    public IActionResult Index() { ... }
+
+    [HttpGet("danh-muc/{ten}")]     <span class="cm">// /cua-hang/danh-muc/dien-thoai</span>
+    public IActionResult DanhMuc(string ten) { ... }
+
+    [HttpGet("[action]")]           <span class="cm">// token [action] -> /cua-hang/LienHe</span>
+    public IActionResult LienHe() { ... }
+}</pre>
+
+    <h3>Các điểm cần nhớ</h3>
+    <ul>
+        <li><strong>Ràng buộc (constraint)</strong>: <code>int</code>, <code>bool</code>, <code>guid</code>, <code>datetime</code>, <code>min(x)</code>, <code>max(x)</code>, <code>range(a,b)</code>, <code>length(n)</code>, <code>alpha</code>, <code>regex(...)</code>. Không thoả thì route không khớp → 404.</li>
+        <li><strong>Tham số tuỳ chọn</strong> <code>{id?}</code> và <strong>giá trị mặc định</strong> <code>{so=1}</code>.</li>
+        <li><strong>Token</strong> <code>[controller]</code>, <code>[action]</code> được thay bằng tên thật, ví dụ <code>[Route("[controller]/[action]")]</code>.</li>
+        <li>Route bắt đầu bằng <code>/</code> hoặc <code>~/</code> ở action sẽ <strong>bỏ qua</strong> tiền tố của controller.</li>
+        <li><code>[HttpGet]</code>, <code>[HttpPost]</code>, <code>[HttpPut]</code>, <code>[HttpDelete]</code> vừa khai báo route vừa giới hạn phương thức HTTP.</li>
+        <li>Action có attribute route thì không dùng được route mặc định nữa.</li>
+    </ul>
+
+    <div class="demo-box">
+        <strong>Chạy thử attribute routing:</strong>
+        <ul class="mb-0">
+            <li><a href="/san-pham/5">/san-pham/5</a></li>
+            <li><a href="/tin-tuc/2026/hoc-aspnet-core-mvc">/tin-tuc/2026/hoc-aspnet-core-mvc</a> · <a href="/tin-tuc/1999/cu-qua">/tin-tuc/1999/cu-qua</a> (vi phạm min(2000) → 404)</li>
+            <li><a href="/gioi-thieu">/gioi-thieu</a> · <a href="/about">/about</a></li>
+            <li><a href="/trang">/trang</a> · <a href="/trang/3">/trang/3</a></li>
+            <li><a href="/cua-hang">/cua-hang</a> · <a href="/cua-hang/danh-muc/dien-thoai">/cua-hang/danh-muc/dien-thoai</a> · <a href="/cua-hang/LienHe">/cua-hang/LienHe</a></li>
+            <li>
+                <form method="post" action="/dinh-tuyen/chi-post" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-success">Gửi POST tới /dinh-tuyen/chi-post</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+</article>
+
+@section Scripts {
+    <script>
+        document.getElementById('btn-put').addEventListener('click', async () => {
+            const res = await fetch('/dinh-tuyen/chi-post', { method: 'PUT' });
+            document.getElementById('kq-put').textContent = `→ ${res.status} ${res.statusText}`;
+        });
+    </script>
+}
