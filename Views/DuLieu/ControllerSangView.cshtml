@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Controller → View";
+}
+
+<div class="lesson">
+    <a asp-action="Index">← Mục 5</a>
+    <h1>Ví dụ: Controller gửi dữ liệu sang View</h1>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <h3>Controller</h3>
+<pre class="code">public IActionResult ControllerSangView()
+{
+    ViewBag.TieuDe = "Xin chào từ Controller!";
+    ViewData["ThoiGian"] = DateTime.Now;
+    ViewBag.DsMonHoc = new List&lt;string&gt;
+        { "Lập trình C#", "ASP.NET Core MVC", "Cơ sở dữ liệu" };
+    return View();
+}</pre>
+            <h3>View</h3>
+<pre class="code">&lt;h4&gt;@@ViewBag.TieuDe&lt;/h4&gt;
+&lt;p&gt;Thời gian: @@(((DateTime)ViewData["ThoiGian"]!).ToString("HH:mm:ss dd/MM/yyyy"))&lt;/p&gt;
+&lt;ul&gt;
+    @@foreach (var mon in ViewBag.DsMonHoc)
+    {
+        &lt;li&gt;@@mon&lt;/li&gt;
+    }
+&lt;/ul&gt;</pre>
+        </div>
+        <div class="col-lg-6">
+            <h3>Kết quả</h3>
+            <div class="demo-box">
+                <h4>@ViewBag.TieuDe</h4>
+                <p>Thời gian: @(((DateTime)ViewData["ThoiGian"]!).ToString("HH:mm:ss dd/MM/yyyy"))</p>
+                <ul class="mb-0">
+                    @foreach (var mon in ViewBag.DsMonHoc)
+                    {
+                        <li>@mon</li>
+                    }
+                </ul>
+            </div>
+            <div class="alert alert-info mt-3 mb-0">
+                <code>ViewData</code> kiểu <code>object</code> nên phải <strong>ép kiểu</strong> trước khi dùng phương thức (<code>ToString("...")</code>);
+                <code>ViewBag</code> kiểu <code>dynamic</code> nên không cần ép kiểu nhưng không được kiểm tra lúc biên dịch.
+            </div>
+        </div>
+    </div>
+</div>

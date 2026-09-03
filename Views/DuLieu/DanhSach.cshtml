@@ -1,0 +1,56 @@
+@model List<SinhVien>
+@{
+    ViewData["Title"] = "Danh sách sinh viên";
+}
+
+<div class="lesson">
+    <a asp-action="Index">← Mục 5</a>
+    <h1>Ví dụ: Truyền danh sách Model sang View</h1>
+
+<pre class="code"><span class="cm">// Controller</span>
+public IActionResult DanhSach()
+{
+    return View(_dsSinhVien);        <span class="cm">// List&lt;SinhVien&gt;</span>
+}
+
+<span class="cm">&lt;!-- View --&gt;</span>
+@@model List&lt;SinhVien&gt;
+@@foreach (var sv in Model)
+{
+    &lt;tr&gt;&lt;td&gt;@@sv.MaSV&lt;/td&gt;&lt;td&gt;@@sv.HoTen&lt;/td&gt;...&lt;/tr&gt;
+}</pre>
+
+    <div class="demo-box">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>Có @Model.Count sinh viên</strong>
+            <a class="btn btn-sm btn-success" asp-action="ThemMoi">+ Thêm sinh viên</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover bg-white mb-0">
+                <thead>
+                    <tr>
+                        <th>@Html.DisplayNameFor(m => m[0].MaSV)</th>
+                        <th>@Html.DisplayNameFor(m => m[0].HoTen)</th>
+                        <th>@Html.DisplayNameFor(m => m[0].Tuoi)</th>
+                        <th>@Html.DisplayNameFor(m => m[0].Email)</th>
+                        <th>@Html.DisplayNameFor(m => m[0].Khoa)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var sv in Model)
+                    {
+                        <tr>
+                            <td>@sv.MaSV</td>
+                            <td>@sv.HoTen</td>
+                            <td>@sv.Tuoi</td>
+                            <td>@sv.Email</td>
+                            <td>@sv.Khoa</td>
+                            <td><a asp-action="ThongTin" asp-route-id="@sv.MaSV">Chi tiết</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
