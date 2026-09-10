@@ -1,0 +1,103 @@
+@{
+    ViewData["Title"] = "6. Quản lý trạng thái";
+}
+
+<article class="lesson">
+    <span class="badge text-bg-primary">Mục 6</span>
+    <h1 class="mt-2">Tìm hiểu về quản lý trạng thái</h1>
+    <p class="lead">
+        HTTP là giao thức <strong>phi trạng thái (stateless)</strong>: mỗi request độc lập, server không tự nhớ request trước.
+        ASP.NET Core MVC cung cấp <code>ViewBag</code>, <code>ViewData</code>, <code>TempData</code> để truyền dữ liệu
+        từ Controller sang View hoặc giữa các request liên tiếp.
+    </p>
+
+    <h2>1. ViewData</h2>
+    <ul>
+        <li>Kiểu <code>ViewDataDictionary</code> – một từ điển <strong>key (string) → value (object)</strong>.</li>
+        <li>Truy cập bằng key: <code>ViewData["Lop"] = "K66-CNTT";</code></li>
+        <li>Giá trị là <code>object</code> nên <strong>phải ép kiểu</strong> khi dùng như kiểu cụ thể, và cần kiểm tra null.</li>
+        <li>Chỉ tồn tại trong <strong>request hiện tại</strong>; redirect là mất.</li>
+        <li>Thường dùng cho <code>ViewData["Title"]</code> để truyền tiêu đề trang từ View lên Layout.</li>
+    </ul>
+<pre class="code"><span class="cm">// Controller</span>
+ViewData["DiemTB"] = 8.25;
+<span class="cm">&lt;!-- View --&gt;</span>
+@@{ var diem = (double)ViewData["DiemTB"]!; }
+&lt;p&gt;Xếp loại: @@(diem &gt;= 8 ? "Giỏi" : "Khá")&lt;/p&gt;</pre>
+
+    <h2>2. ViewBag</h2>
+    <ul>
+        <li>Kiểu <code>dynamic</code> – là lớp bọc (wrapper) quanh <code>ViewData</code>, truy cập bằng thuộc tính: <code>ViewBag.HoTen = "An";</code></li>
+        <li><strong>Không cần ép kiểu</strong>, cú pháp gọn; nhưng không có IntelliSense, sai tên chỉ lộ ra lúc chạy (trả về null).</li>
+        <li>Dùng <strong>chung dữ liệu</strong> với ViewData: <code>ViewBag.X</code> và <code>ViewData["X"]</code> là một.</li>
+        <li>Cũng chỉ tồn tại trong request hiện tại.</li>
+    </ul>
+<pre class="code"><span class="cm">// Controller</span>
+ViewBag.MonHoc = new[] { "C#", "ASP.NET Core", "SQL" };
+<span class="cm">&lt;!-- View --&gt;</span>
+@@foreach (var mon in ViewBag.MonHoc) { &lt;li&gt;@@mon&lt;/li&gt; }</pre>
+
+    <h2>3. TempData</h2>
+    <ul>
+        <li>Kiểu <code>ITempDataDictionary</code>, truy cập bằng key giống ViewData.</li>
+        <li>Dữ liệu <strong>tồn tại qua redirect</strong> – sống đến khi được <strong>đọc</strong> ở request sau thì bị xoá.</li>
+        <li>Mặc định lưu trong <strong>cookie</strong> (đã mã hoá); có thể cấu hình lưu bằng Session.</li>
+        <li>Chỉ lưu được kiểu đơn giản (string, int, bool, DateTime…). Đối tượng phức tạp cần chuyển sang JSON.</li>
+        <li>Dùng điển hình: thông báo "Thêm thành công" sau khi POST rồi redirect (mẫu Post/Redirect/Get).</li>
+        <li><code>TempData.Peek("key")</code>: đọc mà <strong>không xoá</strong>. <code>TempData.Keep("key")</code>: giữ lại cho request tiếp theo.</li>
+    </ul>
+<pre class="code">[HttpPost]
+public IActionResult ThemMoi(SinhVien sv)
+{
+    _ds.Add(sv);
+    TempData["ThongBao"] = "Thêm sinh viên thành công!";
+    return RedirectToAction("DanhSach");     <span class="cm">// ViewBag sẽ mất, TempData vẫn còn</span>
+}
+
+<span class="cm">&lt;!-- DanhSach.cshtml --&gt;</span>
+@@if (TempData["ThongBao"] != null)
+{
+    &lt;div class="alert alert-success"&gt;@@TempData["ThongBao"]&lt;/div&gt;
+}</pre>
+
+    <h2>4. So sánh</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr><th>Tiêu chí</th><th>ViewData</th><th>ViewBag</th><th>TempData</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Kiểu dữ liệu</td><td><code>ViewDataDictionary</code></td><td><code>dynamic</code></td><td><code>ITempDataDictionary</code></td></tr>
+                <tr><td>Cú pháp</td><td><code>ViewData["Key"]</code></td><td><code>ViewBag.Key</code></td><td><code>TempData["Key"]</code></td></tr>
+                <tr><td>Ép kiểu khi đọc</td><td>Cần</td><td>Không cần</td><td>Cần</td></tr>
+                <tr><td>Kiểm tra lúc biên dịch</td><td>Không</td><td>Không</td><td>Không</td></tr>
+                <tr><td>Thời gian sống</td><td>1 request</td><td>1 request</td><td>Đến khi được đọc (qua redirect được)</td></tr>
+                <tr><td>Nơi lưu</td><td>Bộ nhớ server</td><td>Bộ nhớ server (chung với ViewData)</td><td>Cookie (mặc định) hoặc Session</td></tr>
+                <tr><td>Hướng truyền</td><td>Controller → View, View → Layout/Partial</td><td>Controller → View</td><td>Controller → Controller → View</td></tr>
+                <tr><td>Khi nào dùng</td><td>Dữ liệu nhỏ, tiêu đề trang</td><td>Dữ liệu nhỏ, viết nhanh</td><td>Thông báo sau redirect</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="alert alert-info">
+        Với dữ liệu chính của trang nên dùng <strong>Model mạnh kiểu</strong> (<code>return View(model)</code> + <code>@@model</code>) – xem mục 5.
+        ViewBag/ViewData/TempData phù hợp cho dữ liệu phụ, nhỏ.
+    </div>
+
+    <h2>5. Ví dụ chạy thử</h2>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="demo-box h-100">
+                <h5>ViewBag &amp; ViewData</h5>
+                <a class="btn btn-success" asp-action="ViewBagViewData">Mở ví dụ</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="demo-box h-100">
+                <h5>TempData qua redirect</h5>
+                <a class="btn btn-success mb-1" asp-action="GuiTempData" asp-route-cheDo="doc">Đọc thường</a>
+                <a class="btn btn-outline-success mb-1" asp-action="GuiTempData" asp-route-cheDo="peek">Dùng Peek</a>
+                <a class="btn btn-outline-success mb-1" asp-action="GuiTempData" asp-route-cheDo="keep">Dùng Keep</a>
+            </div>
+        </div>
+    </div>
+</article>

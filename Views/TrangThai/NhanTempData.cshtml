@@ -1,0 +1,84 @@
+@{
+    ViewData["Title"] = "Ví dụ TempData";
+    string cheDo = ViewBag.CheDo;
+    object? tempData = ViewBag.TempDataDocDuoc;
+}
+
+<div class="lesson">
+    <a asp-action="Index">← Mục 6</a>
+    <h1>Ví dụ: TempData qua redirect</h1>
+
+    <div class="flow my-3">
+        <span class="step"><code>GuiTempData</code><br />gán TempData + ViewBag</span><span class="arrow">→ 302 Redirect →</span>
+        <span class="step"><code>NhanTempData</code><br />đọc lại ở request mới</span>
+    </div>
+
+    <div class="btn-group mb-3" role="group">
+        <a class="btn @(cheDo == "doc" ? "btn-success" : "btn-outline-success")" asp-action="GuiTempData" asp-route-cheDo="doc">Đọc thường</a>
+        <a class="btn @(cheDo == "peek" ? "btn-success" : "btn-outline-success")" asp-action="GuiTempData" asp-route-cheDo="peek">Peek</a>
+        <a class="btn @(cheDo == "keep" ? "btn-success" : "btn-outline-success")" asp-action="GuiTempData" asp-route-cheDo="keep">Keep</a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+<pre class="code">public IActionResult GuiTempData(string cheDo)
+{
+    TempData["ThongBao"] = $"TempData được gán lúc {DateTime.Now:HH:mm:ss}";
+    ViewBag.ThongBao = "ViewBag được gán trước khi redirect";
+    return RedirectToAction("NhanTempData", new { cheDo });
+}
+
+public IActionResult NhanTempData(string cheDo)
+{
+    ViewBag.TempDataDocDuoc = cheDo == "peek"
+        ? TempData.Peek("ThongBao")   <span class="cm">// đọc, không xoá</span>
+        : TempData["ThongBao"];       <span class="cm">// đọc, đánh dấu xoá</span>
+
+    if (cheDo == "keep")
+        TempData.Keep("ThongBao");    <span class="cm">// huỷ đánh dấu xoá</span>
+    return View();
+}</pre>
+        </div>
+        <div class="col-lg-6">
+            <div class="demo-box">
+                <p class="mb-1">Chế độ: <strong>@cheDo</strong></p>
+                <table class="table table-sm bg-white">
+                    <tbody>
+                        <tr>
+                            <th>TempData["ThongBao"]</th>
+                            <td>
+                                @if (tempData != null)
+                                {
+                                    <span class="text-success">@tempData</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger">null (đã bị xoá)</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>ViewBag.ThongBao</th>
+                            <td>
+                                @if (ViewBag.ThongBao != null)
+                                {
+                                    @ViewBag.ThongBao
+                                }
+                                else
+                                {
+                                    <span class="text-danger">null (mất sau redirect)</span>
+                                }
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <a class="btn btn-primary" asp-action="NhanTempData" asp-route-cheDo="@cheDo">↻ Tải lại trang (request tiếp theo)</a>
+            </div>
+            <ul class="mt-3">
+                <li><strong>Đọc thường:</strong> lần đầu thấy giá trị, tải lại trang thì TempData thành <code>null</code>.</li>
+                <li><strong>Peek / Keep:</strong> giá trị vẫn còn sau mỗi lần tải lại.</li>
+                <li><strong>ViewBag</strong> luôn <code>null</code> vì redirect tạo ra request mới.</li>
+            </ul>
+        </div>
+    </div>
+</div>

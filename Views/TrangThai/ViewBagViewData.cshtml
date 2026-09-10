@@ -1,0 +1,68 @@
+@{
+    ViewData["Title"] = "Ví dụ ViewBag & ViewData";
+    var diem = (double)ViewData["DiemTB"]!;
+}
+
+<div class="lesson">
+    <a asp-action="Index">← Mục 6</a>
+    <h1>Ví dụ: ViewBag &amp; ViewData</h1>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+<pre class="code"><span class="cm">// Controller</span>
+public IActionResult ViewBagViewData()
+{
+    ViewBag.HoTen = "Nguyễn Văn An";
+    ViewData["Lop"] = "K66-CNTT";
+    ViewData["DiemTB"] = 8.25;
+    ViewBag.MonHoc = new[] { "C#", "ASP.NET Core", "SQL" };
+
+    ViewBag.ChungKho = "Gán bằng ViewBag, đọc bằng ViewData";
+    ViewData["ChungKho2"] = "Gán bằng ViewData, đọc bằng ViewBag";
+    return View();
+}
+
+<span class="cm">&lt;!-- View --&gt;</span>
+@@{ var diem = (double)ViewData["DiemTB"]!; }   <span class="cm">// ViewData phải ép kiểu</span>
+&lt;p&gt;@@ViewBag.HoTen – @@ViewData["Lop"]&lt;/p&gt;
+&lt;p&gt;@@diem.ToString("0.00") – @@(diem &gt;= 8 ? "Giỏi" : "Khá")&lt;/p&gt;
+@@foreach (var mon in ViewBag.MonHoc) { &lt;li&gt;@@mon&lt;/li&gt; }
+
+&lt;p&gt;@@ViewData["ChungKho"]&lt;/p&gt;
+&lt;p&gt;@@ViewBag.ChungKho2&lt;/p&gt;
+&lt;p&gt;@@(ViewBag.SaiTen ?? "null")&lt;/p&gt;       <span class="cm">// gõ sai tên: không lỗi, chỉ null</span></pre>
+        </div>
+        <div class="col-lg-6">
+            <div class="demo-box">
+                <table class="table table-sm bg-white mb-0">
+                    <tbody>
+                        <tr><th>ViewBag.HoTen</th><td>@ViewBag.HoTen</td></tr>
+                        <tr><th>ViewData["Lop"]</th><td>@ViewData["Lop"]</td></tr>
+                        <tr><th>Điểm TB (ép kiểu double)</th><td>@diem.ToString("0.00") – xếp loại <strong>@(diem >= 8 ? "Giỏi" : "Khá")</strong></td></tr>
+                        <tr>
+                            <th>ViewBag.MonHoc</th>
+                            <td>
+                                <ul class="mb-0 ps-3">
+                                    @foreach (var mon in ViewBag.MonHoc)
+                                    {
+                                        <li>@mon</li>
+                                    }
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr><th>ViewData["ChungKho"]</th><td>@ViewData["ChungKho"]</td></tr>
+                        <tr><th>ViewBag.ChungKho2</th><td>@ViewBag.ChungKho2</td></tr>
+                        <tr><th>ViewBag.SaiTen</th><td><code>@(ViewBag.SaiTen ?? "null")</code></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="alert alert-warning mt-3">
+                Tiêu đề tab trình duyệt "<strong>@ViewData["Title"]</strong>" cũng được truyền bằng <code>ViewData["Title"]</code> từ View này lên <code>_Layout.cshtml</code>.
+            </div>
+            <p>
+                Bây giờ thử <strong>redirect</strong> để thấy ViewBag bị mất còn TempData vẫn giữ:
+                <a asp-action="GuiTempData">Ví dụ TempData →</a>
+            </p>
+        </div>
+    </div>
+</div>
