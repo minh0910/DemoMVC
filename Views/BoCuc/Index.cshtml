@@ -1,0 +1,155 @@
+@{
+    ViewData["Title"] = "7. Layout";
+}
+
+<article class="lesson">
+    <span class="badge text-bg-primary">Mục 7</span>
+    <h1 class="mt-2">Tìm hiểu về Layout</h1>
+    <p class="lead">
+        <strong>Layout</strong> là khung giao diện dùng chung cho nhiều trang: phần <code>&lt;head&gt;</code>, thanh menu, footer, các file CSS/JS.
+        Mỗi View chỉ viết phần nội dung riêng, Layout sẽ "bọc" nội dung đó lại. Nhờ vậy không phải lặp lại cùng một đoạn HTML ở mọi trang.
+    </p>
+
+    <h2>1. Các file liên quan đến Layout</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr><th>File</th><th>Vai trò</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>Views/Shared/_Layout.cshtml</code></td><td>Layout mặc định: head, navbar, footer, nạp Bootstrap và <code>site.css</code></td></tr>
+                <tr><td><code>Views/_ViewStart.cshtml</code></td><td>Chạy trước mọi View, gán <code>Layout = "_Layout"</code> cho tất cả các trang</td></tr>
+                <tr><td><code>Views/_ViewImports.cshtml</code></td><td>Khai báo <code>@@using</code> và Tag Helper dùng chung cho mọi View</td></tr>
+                <tr><td><code>wwwroot/css/site.css</code></td><td>File CSS chung của website, được Layout nạp vào</td></tr>
+                <tr><td><code>Views/Shared/_Layout.cshtml.css</code></td><td>CSS isolation: CSS chỉ áp dụng cho riêng <code>_Layout.cshtml</code></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>2. RenderBody: chỗ đặt nội dung của View</h2>
+    <p>Trong Layout, <code>@@RenderBody()</code> là vị trí nội dung của View được chèn vào. Mỗi Layout bắt buộc có đúng một <code>RenderBody()</code>.</p>
+<pre class="code"><span class="cm">&lt;!-- Views/Shared/_Layout.cshtml (rút gọn) --&gt;</span>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="vi"&gt;
+&lt;head&gt;
+    &lt;title&gt;@@ViewData["Title"] - DemoMVC&lt;/title&gt;
+    &lt;link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /&gt;
+    &lt;link rel="stylesheet" href="~/css/site.css" asp-append-version="true" /&gt;
+    @@await RenderSectionAsync("Styles", required: false)
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;header&gt;...navbar...&lt;/header&gt;
+    &lt;div class="container"&gt;
+        &lt;main&gt;@@RenderBody()&lt;/main&gt;        <span class="cm">&lt;!-- nội dung của View nằm ở đây --&gt;</span>
+    &lt;/div&gt;
+    &lt;footer&gt;...&lt;/footer&gt;
+    &lt;script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"&gt;&lt;/script&gt;
+    @@await RenderSectionAsync("Scripts", required: false)
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+
+    <h2>3. _ViewStart và cách chọn Layout</h2>
+    <ul>
+        <li><code>_ViewStart.cshtml</code> gán Layout mặc định cho mọi View: <code>@@{ Layout = "_Layout"; }</code></li>
+        <li>Một View muốn dùng layout khác thì tự gán lại: <code>@@{ Layout = "_LayoutDemo"; }</code></li>
+        <li>Gán <code>Layout = null</code> để trang không dùng layout nào (trang in, trang trả về HTML đơn giản).</li>
+        <li>Razor tìm file layout theo tên trong thư mục của Controller rồi đến <code>Views/Shared/</code>.</li>
+    </ul>
+<pre class="code"><span class="cm">@@* Views/_ViewStart.cshtml *@@</span>
+@@{
+    Layout = "_Layout";
+}
+
+<span class="cm">@@* Views/BoCuc/LayoutRieng.cshtml *@@</span>
+@@{
+    Layout = "_LayoutDemo";              <span class="cm">// ghi đè layout mặc định</span>
+    ViewData["Title"] = "Layout riêng";
+}</pre>
+
+    <h2>4. Section: View gửi thêm nội dung lên Layout</h2>
+    <ul>
+        <li>Layout khai báo chỗ trống bằng <code>RenderSectionAsync("TenSection", required: false)</code>.</li>
+        <li>View điền vào chỗ trống đó bằng <code>@@section TenSection { ... }</code>.</li>
+        <li><code>required: false</code>: View không có section này cũng không lỗi. Nếu <code>true</code> mà View thiếu section thì báo lỗi khi chạy.</li>
+        <li>Dự án có 2 section: <code>Styles</code> (nạp CSS riêng của trang, nằm trong <code>&lt;head&gt;</code>) và <code>Scripts</code> (nạp JS riêng, nằm cuối <code>&lt;body&gt;</code> sau jQuery và Bootstrap).</li>
+    </ul>
+<pre class="code"><span class="cm">@@* Views/BoCuc/ViDuBootstrap.cshtml *@@</span>
+@@section Styles {
+    &lt;link rel="stylesheet" href="~/css/bocuc.css" asp-append-version="true" /&gt;
+}
+
+@@section Scripts {
+    &lt;script&gt;
+        <span class="cm">// chạy sau khi bootstrap.bundle.min.js đã được nạp</span>
+    &lt;/script&gt;
+}</pre>
+    <p>Layout cũng nhận dữ liệu từ View qua <code>ViewData</code>: View gán <code>ViewData["Title"]</code>, Layout đọc ra để hiện trên thẻ <code>&lt;title&gt;</code> (xem mục 6).</p>
+
+    <h2>5. Tích hợp Bootstrap 5 vào dự án</h2>
+    <p>Dự án đang dùng <strong>Bootstrap v5.3.3</strong>, file nằm trong <code>wwwroot/lib/bootstrap/</code> (template <code>dotnet new mvc</code> đã có sẵn). Có 2 cách tích hợp:</p>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Cách 1: file trong wwwroot/lib</h5>
+                    <p class="card-text">Tải Bootstrap về (bằng LibMan, npm hoặc tải tay) và đặt trong <code>wwwroot/lib/</code>. Không phụ thuộc mạng ngoài, chạy được cả khi offline.</p>
+<pre class="code">&lt;link rel="stylesheet"
+      href="~/lib/bootstrap/dist/css/bootstrap.min.css" /&gt;
+...
+&lt;script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"&gt;&lt;/script&gt;</pre>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Cách 2: dùng CDN</h5>
+                    <p class="card-text">Nạp trực tiếp từ CDN (jsDelivr). Không cần lưu file trong dự án, trình duyệt có thể đã cache sẵn; nhưng cần mạng ngoài.</p>
+<pre class="code">&lt;link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@@5.3.3/dist/css/bootstrap.min.css" /&gt;
+...
+&lt;script src="https://cdn.jsdelivr.net/npm/bootstrap@@5.3.3/dist/js/bootstrap.bundle.min.js"&gt;&lt;/script&gt;</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <ul class="mt-3">
+        <li>File CSS đặt trong <code>&lt;head&gt;</code> để trang hiện ra đã có giao diện.</li>
+        <li>File JS đặt <strong>cuối</strong> <code>&lt;body&gt;</code> để không chặn việc hiển thị trang. <code>bootstrap.bundle</code> đã gồm Popper (cần cho dropdown, tooltip).</li>
+        <li>Thẻ meta viewport <code>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;</code> là bắt buộc để giao diện responsive chạy đúng trên điện thoại.</li>
+    </ul>
+
+    <h2>6. Tách file CSS và tích hợp vào Layout</h2>
+    <ul>
+        <li>Không viết <code>&lt;style&gt;</code> hay <code>style="..."</code> rải rác trong từng View: khó sửa, trùng lặp, trình duyệt không cache được.</li>
+        <li>Viết CSS dùng chung vào <code>wwwroot/css/site.css</code>, Layout nạp file này cho mọi trang.</li>
+        <li>CSS chỉ một trang dùng thì tách thành file riêng (ví dụ <code>wwwroot/css/bocuc.css</code>) và nạp qua <code>@@section Styles</code>.</li>
+        <li><code>asp-append-version="true"</code> thêm <code>?v=&lt;mã băm&gt;</code> vào đường dẫn. Khi sửa file CSS, mã băm đổi nên trình duyệt tải bản mới thay vì dùng bản cũ trong cache.</li>
+        <li>Nạp <code>site.css</code> <strong>sau</strong> <code>bootstrap.min.css</code> để CSS của mình ghi đè được Bootstrap.</li>
+        <li><strong>CSS isolation</strong>: file <code>_Layout.cshtml.css</code> đặt cạnh View, khi build được gộp vào <code>DemoMVC.styles.css</code> và chỉ áp dụng cho View đó.</li>
+    </ul>
+<pre class="code"><span class="cm">/* wwwroot/css/site.css */</span>
+.topic-card { transition: transform .15s, box-shadow .15s; }
+.topic-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08); }
+
+<span class="cm">&lt;!-- HTML sinh ra --&gt;</span>
+&lt;link rel="stylesheet" href="/css/site.css?v=5zG2Yd0Q..." /&gt;</pre>
+
+    <h2>7. Ví dụ chạy thử</h2>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="demo-box h-100">
+                <h5>Thành phần Bootstrap 5 + CSS riêng</h5>
+                <p class="mb-2">Grid, button, card, alert, modal; nạp <code>bocuc.css</code> qua section Styles.</p>
+                <a class="btn btn-success" asp-action="ViDuBootstrap">Mở ví dụ</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="demo-box h-100">
+                <h5>Trang dùng layout khác</h5>
+                <p class="mb-2">View gán <code>Layout = "_LayoutDemo"</code> thay cho layout mặc định.</p>
+                <a class="btn btn-success" asp-action="LayoutRieng">Mở ví dụ</a>
+            </div>
+        </div>
+    </div>
+</article>

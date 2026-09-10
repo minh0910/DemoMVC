@@ -1,0 +1,28 @@
+/* CSS riêng cho trang /BoCuc/ViDuBootstrap, nạp qua @section Styles */
+
+.grid-demo .grid-cell {
+  background: #e7f1ff;
+  border: 1px solid #9ec5fe;
+  border-radius: .5rem;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.breakpoint-badge {
+  font-family: SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.btn-demo {
+  color: #fff;
+  background: linear-gradient(135deg, #6f42c1, #d63384);
+  border: none;
+}
+.btn-demo:hover {
+  color: #fff;
+  filter: brightness(1.1);
+}
+
+.card-demo {
+  border-left: .35rem solid #6f42c1;
+}

@@ -1,0 +1,33 @@
+@{
+    // Ghi đè layout mặc định được gán trong Views/_ViewStart.cshtml
+    Layout = "_LayoutDemo";
+    ViewData["Title"] = "Layout riêng";
+}
+
+<h1>Trang dùng layout riêng</h1>
+<p class="lead">
+    Trang này gán <code>Layout = "_LayoutDemo"</code> nên không có menu và footer của <code>_Layout.cshtml</code>,
+    mà dùng khung của <code>Views/Shared/_LayoutDemo.cshtml</code> (thanh tiêu đề màu tối, nội dung hẹp ở giữa).
+</p>
+
+<pre class="code"><span class="cm">@@* Views/BoCuc/LayoutRieng.cshtml *@@</span>
+@@{
+    Layout = "_LayoutDemo";
+    ViewData["Title"] = "Layout riêng";
+}
+
+<span class="cm">@@* Views/Shared/_LayoutDemo.cshtml (rút gọn) *@@</span>
+&lt;body class="bg-light"&gt;
+    &lt;nav class="navbar navbar-dark bg-dark"&gt;...&lt;/nav&gt;
+    &lt;main class="container py-4"&gt;
+        @@RenderBody()
+    &lt;/main&gt;
+    @@await RenderSectionAsync("Scripts", required: false)
+&lt;/body&gt;</pre>
+
+<ul>
+    <li>Layout riêng vẫn nạp Bootstrap và <code>site.css</code> nên các class như <code>pre.code</code>, <code>btn</code> vẫn dùng được.</li>
+    <li>Thường dùng layout riêng cho: trang đăng nhập, trang quản trị (admin), trang in.</li>
+</ul>
+
+<a class="btn btn-primary" asp-controller="BoCuc" asp-action="Index">Quay lại bài học (layout mặc định)</a>

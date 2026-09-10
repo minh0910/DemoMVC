@@ -1,0 +1,149 @@
+@{
+    ViewData["Title"] = "Ví dụ Bootstrap 5";
+}
+
+@* CSS riêng của trang: chỉ nạp ở trang này, Layout đặt nó trong <head> *@
+@section Styles {
+    <link rel="stylesheet" href="~/css/bocuc.css" asp-append-version="true" />
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">7. Layout</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Ví dụ Bootstrap 5</li>
+    </ol>
+</nav>
+
+<h1>Các thành phần Bootstrap 5</h1>
+<p class="text-muted">
+    Trang này dùng layout mặc định, nạp thêm <code>~/css/bocuc.css</code> qua <code>@@section Styles</code>
+    và một đoạn JS qua <code>@@section Scripts</code>.
+</p>
+
+<div class="alert alert-info">
+    Kích thước màn hình hiện tại: <strong id="breakpoint" class="breakpoint-badge">...</strong>
+    <span class="small">(thu nhỏ/phóng to cửa sổ trình duyệt để thấy grid thay đổi)</span>
+</div>
+
+<h2 class="h4 mt-4">1. Grid: chia cột theo kích thước màn hình</h2>
+<p><code>col-12 col-md-6 col-lg-3</code>: điện thoại 1 cột, tablet 2 cột, máy tính 4 cột trên một hàng.</p>
+<div class="row g-3 grid-demo">
+    @for (var i = 1; i <= 4; i++)
+    {
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="grid-cell">Cột @i</div>
+        </div>
+    }
+</div>
+
+<h2 class="h4 mt-4">2. Button và Badge</h2>
+<div class="d-flex flex-wrap gap-2 mb-2">
+    <button type="button" class="btn btn-primary">Primary</button>
+    <button type="button" class="btn btn-success">Success</button>
+    <button type="button" class="btn btn-warning">Warning</button>
+    <button type="button" class="btn btn-danger">Danger</button>
+    <button type="button" class="btn btn-outline-secondary">Outline</button>
+    <button type="button" class="btn btn-demo">Nút dùng CSS riêng (bocuc.css)</button>
+</div>
+<p>
+    <span class="badge text-bg-primary">Mới</span>
+    <span class="badge rounded-pill text-bg-success">Hoàn thành</span>
+    <span class="badge text-bg-secondary">Bản nháp</span>
+</p>
+
+<h2 class="h4 mt-4">3. Card</h2>
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">Layout</div>
+            <div class="card-body">
+                <h5 class="card-title">_Layout.cshtml</h5>
+                <p class="card-text">Khung dùng chung: head, menu, footer.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-header text-bg-success">CSS</div>
+            <div class="card-body">
+                <h5 class="card-title">site.css</h5>
+                <p class="card-text">CSS chung, nạp sau Bootstrap để ghi đè.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 card-demo">
+            <div class="card-header">CSS riêng</div>
+            <div class="card-body">
+                <h5 class="card-title">bocuc.css</h5>
+                <p class="card-text">Chỉ trang này nạp, viền trái lấy từ file CSS riêng.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h4 mt-4">4. Alert và Modal</h2>
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    Thông báo có thể đóng (cần <code>bootstrap.bundle.min.js</code> trong Layout).
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+</div>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalDemo">Mở modal</button>
+
+<div class="modal fade" id="modalDemo" tabindex="-1" aria-labelledby="modalDemoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDemoLabel">Modal Bootstrap 5</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                Modal hoạt động nhờ file JS của Bootstrap được Layout nạp ở cuối trang,
+                chỉ cần thêm thuộc tính <code>data-bs-toggle="modal"</code>, không phải viết JS.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h4 mt-4">5. Bảng responsive</h2>
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr><th>Class</th><th>Tác dụng</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>container</code></td><td>Khung nội dung căn giữa, rộng theo màn hình</td></tr>
+            <tr><td><code>row</code> / <code>col-*</code></td><td>Chia hàng, chia cột (12 cột)</td></tr>
+            <tr><td><code>d-flex</code>, <code>gap-2</code></td><td>Flexbox và khoảng cách giữa các phần tử</td></tr>
+            <tr><td><code>mt-4</code>, <code>mb-2</code>, <code>p-3</code></td><td>Margin/padding nhanh</td></tr>
+            <tr><td><code>table-responsive</code></td><td>Bảng tự cuộn ngang trên màn hình nhỏ</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<a class="btn btn-outline-secondary mt-2" asp-action="Index">Quay lại bài học</a>
+
+@* JS riêng của trang: Layout đặt nó cuối <body>, sau jQuery và Bootstrap *@
+@section Scripts {
+    <script>
+        (function () {
+            const badge = document.getElementById('breakpoint');
+            const breakpoints = [
+                { name: 'xxl (≥ 1400px)', min: 1400 },
+                { name: 'xl (≥ 1200px)', min: 1200 },
+                { name: 'lg (≥ 992px)', min: 992 },
+                { name: 'md (≥ 768px)', min: 768 },
+                { name: 'sm (≥ 576px)', min: 576 },
+                { name: 'xs (< 576px)', min: 0 }
+            ];
+            function update() {
+                const width = window.innerWidth;
+                badge.textContent = breakpoints.find(b => width >= b.min).name + ' - rộng ' + width + 'px';
+            }
+            window.addEventListener('resize', update);
+            update();
+        })();
+    </script>
+}

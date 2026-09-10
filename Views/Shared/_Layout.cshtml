@@ -8,10 +8,11 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DemoMVC.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-xl navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
                 <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">DemoMVC</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -26,6 +27,7 @@
                         <li class="nav-item"><a class="nav-link" asp-controller="DinhTuyen" asp-action="Index">4. Định tuyến</a></li>
                         <li class="nav-item"><a class="nav-link" asp-controller="DuLieu" asp-action="Index">5. Dữ liệu M-V-C</a></li>
                         <li class="nav-item"><a class="nav-link" asp-controller="TrangThai" asp-action="Index">6. Trạng thái</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="BoCuc" asp-action="Index">7. Layout</a></li>
                     </ul>
                 </div>
             </div>
