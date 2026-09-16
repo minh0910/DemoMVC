@@ -42,6 +42,9 @@ jobs:
           # app_offline.htm: IIS tạm dừng ứng dụng để ghi đè được các file .dll đang chạy
           echo '<h1>Website đang được cập nhật, vui lòng quay lại sau ít giây...</h1>' > app_offline.htm
           lftp --env-password -u "$FTP_USER" "$FTP_HOST" <<EOF
+          set cmd:fail-exit yes
+          # FTPS của hosting dùng chứng chỉ thiếu chuỗi CA: vẫn mã hoá nhưng bỏ kiểm tra chứng chỉ
+          set ssl:verify-certificate no
           set net:max-retries 3
           set net:timeout 30
           put app_offline.htm -o $FTP_DIR/app_offline.htm
