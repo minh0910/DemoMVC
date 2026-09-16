@@ -1,0 +1,128 @@
+@{
+    ViewData["Title"] = "2. CI/CD";
+}
+
+<article class="lesson">
+    <span class="badge text-bg-primary">Mục 2</span>
+    <h1 class="mt-2">Tìm hiểu về CI/CD</h1>
+    <p class="lead">
+        <strong>CI – Continuous Integration</strong> (tích hợp liên tục): mỗi lần đẩy code lên, hệ thống tự động build &amp; test.<br />
+        <strong>CD – Continuous Delivery/Deployment</strong> (triển khai liên tục): code đạt yêu cầu được tự động đưa lên server.
+    </p>
+
+    <div class="flow my-3">
+        <span class="step">Viết code</span><span class="arrow">→</span>
+        <span class="step">git push</span><span class="arrow">→</span>
+        <span class="step">Restore &amp; Build</span><span class="arrow">→</span>
+        <span class="step">Test</span><span class="arrow">→</span>
+        <span class="step">Publish</span><span class="arrow">→</span>
+        <span class="step">Deploy lên hosting</span><span class="arrow">→</span>
+        <span class="step">Website chạy tại domain</span>
+    </div>
+    <p>Lợi ích: giảm thao tác thủ công (build, copy file, FTP…), phát hiện lỗi sớm, triển khai nhanh và nhất quán.</p>
+
+    <h2>1. Đăng ký hosting và domain</h2>
+    <h3>Domain (tên miền)</h3>
+    <ul>
+        <li>Là địa chỉ dễ nhớ thay cho IP, ví dụ <code>demomvc.vn</code>. Mua tại các nhà đăng ký (Mắt Bão, PA Vietnam, Namecheap, Cloudflare…), gia hạn theo năm.</li>
+        <li>Sau khi mua, cấu hình <strong>DNS</strong>:
+            <ul>
+                <li><strong>Bản ghi A</strong>: trỏ <code>demomvc.vn</code> → địa chỉ IP của hosting.</li>
+                <li><strong>Bản ghi CNAME</strong>: trỏ <code>www</code> → <code>demomvc.vn</code> (hoặc tên miền do nhà cung cấp cho).</li>
+                <li>Hoặc đổi <strong>Nameserver</strong> sang nameserver của nhà cung cấp hosting.</li>
+            </ul>
+        </li>
+        <li>DNS có thể mất vài phút đến 24–48 giờ để cập nhật.</li>
+    </ul>
+    <h3>Hosting</h3>
+    <table class="table table-bordered">
+        <thead class="table-light"><tr><th>Loại</th><th>Đặc điểm</th><th>Cách deploy phổ biến</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Shared hosting Windows</strong> (Plesk)</td><td>Rẻ, có sẵn IIS hỗ trợ ASP.NET Core, ít quyền cấu hình.</td><td>FTP / Web Deploy</td></tr>
+            <tr><td><strong>VPS Linux</strong></td><td>Toàn quyền, cài .NET Runtime + Nginx làm reverse proxy.</td><td>SSH + rsync/scp, chạy bằng systemd</td></tr>
+            <tr><td><strong>Cloud PaaS</strong> (Azure App Service…)</td><td>Không quản lý server, tự scale, có gói miễn phí.</td><td>GitHub Actions có sẵn action</td></tr>
+        </tbody>
+    </table>
+    <p>Khi chọn shared hosting cần kiểm tra: hỗ trợ đúng phiên bản .NET (ở đây .NET 10), có SSL miễn phí (Let's Encrypt), có tài khoản FTP.</p>
+
+    <h2>2. Tạo dự án .NET MVC và đưa lên GitHub</h2>
+<pre class="code">dotnet new mvc -n DemoMVC
+cd DemoMVC
+dotnet new gitignore          <span class="cm"># không đưa bin/ obj/ lên Git</span>
+git init
+git add .
+git commit -m "Initial ASP.NET Core MVC project"
+git branch -M main
+git remote add origin https://github.com/&lt;user&gt;/DemoMVC.git
+git push -u origin main</pre>
+
+    <h2>3. Thiết lập quy trình tự động triển khai (GitHub Actions)</h2>
+    <p>Tạo file <code>.github/workflows/deploy.yml</code>. Mỗi lần push lên nhánh <code>main</code>, GitHub sẽ tự build, publish và upload lên hosting qua FTP.</p>
+<pre class="code">name: Build &amp; Deploy DemoMVC
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:            <span class="cm"># cho phép bấm chạy tay</span>
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@@v4
+
+      - name: Cài .NET SDK
+        uses: actions/setup-dotnet@@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore
+
+      - name: Test
+        run: dotnet test -c Release --no-build   <span class="cm"># nếu có project test</span>
+
+      - name: Publish
+        run: dotnet publish -c Release -o ./publish --no-build
+
+      - name: Deploy qua FTP
+        uses: SamKirkland/FTP-Deploy-Action@@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./publish/
+          server-dir: /httpdocs/</pre>
+
+    <h3>Cấu hình Secrets</h3>
+    <p>Trên GitHub: <em>Settings → Secrets and variables → Actions → New repository secret</em>, thêm
+        <code>FTP_SERVER</code>, <code>FTP_USERNAME</code>, <code>FTP_PASSWORD</code>. Không bao giờ ghi mật khẩu trực tiếp vào file YAML.</p>
+
+    <h3>Phương án VPS Linux (thay bước Deploy)</h3>
+<pre class="code">      - name: Copy lên VPS
+        uses: appleboy/scp-action@@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "publish/*"
+          target: "/var/www/demomvc"
+          strip_components: 1
+
+      - name: Khởi động lại service
+        uses: appleboy/ssh-action@@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: sudo systemctl restart demomvc</pre>
+
+    <div class="alert alert-warning">
+        <strong>Lưu ý với IIS/shared hosting:</strong> khi ghi đè file <code>.dll</code> đang chạy có thể bị khoá.
+        Cách xử lý: upload file <code>app_offline.htm</code> trước khi deploy (IIS sẽ tạm dừng app) rồi xoá sau khi xong.
+    </div>
+</article>
