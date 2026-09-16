@@ -16,6 +16,15 @@ public class HomeController : Controller
         return View();
     }
 
+    // Trang lỗi theo mã trạng thái HTTP (được gọi từ UseStatusCodePagesWithReExecute)
+    public IActionResult Loi(int code)
+    {
+        ViewBag.Code = code;
+        ViewBag.Path = HttpContext.Features
+            .Get<Microsoft.AspNetCore.Diagnostics.IStatusCodeReExecuteFeature>()?.OriginalPath;
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

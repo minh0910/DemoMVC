@@ -1,0 +1,22 @@
+@{
+    int code = ViewBag.Code;
+    ViewData["Title"] = $"Lỗi {code}";
+    string moTa = code switch
+    {
+        404 => "Không tìm thấy trang: không có route nào khớp với URL này.",
+        405 => "Phương thức HTTP không được phép (ví dụ action chỉ nhận POST nhưng bạn truy cập bằng GET).",
+        400 => "Yêu cầu không hợp lệ.",
+        _ => "Đã xảy ra lỗi khi xử lý yêu cầu."
+    };
+}
+
+<div class="text-center py-5">
+    <div class="display-1 fw-bold text-danger">@code</div>
+    <p class="lead">@moTa</p>
+    @if (ViewBag.Path != null)
+    {
+        <p class="text-muted">URL đã truy cập: <code>@ViewBag.Path</code></p>
+    }
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+    <a class="btn btn-outline-secondary" asp-controller="DinhTuyen" asp-action="Index">Xem bài Định tuyến</a>
+</div>

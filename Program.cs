@@ -13,6 +13,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Khi gặp mã lỗi (404, 405...) sẽ chạy lại request tới /Home/Loi để hiển thị trang lỗi thân thiện
+app.UseStatusCodePagesWithReExecute("/Home/Loi", "?code={0}");
+
 app.UseHttpsRedirection();
 app.UseRouting();
 
