@@ -48,7 +48,7 @@ jobs:
           set net:max-retries 3
           set net:timeout 30
           put app_offline.htm -o $FTP_DIR/app_offline.htm
-          mirror --reverse --verbose --parallel=4 ./publish/ $FTP_DIR/
+          mirror --reverse --no-perms --verbose --parallel=4 ./publish/ $FTP_DIR/
           rm $FTP_DIR/app_offline.htm
           bye
           EOF
