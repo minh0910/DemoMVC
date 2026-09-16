@@ -20,6 +20,21 @@ Lợi ích:
 
 ## 2. Đăng ký hosting và domain
 
+### 2.0. Hosting và domain của dự án này
+
+| | |
+|---|---|
+| Nhà cung cấp hosting | **MonsterASP.NET** (gói miễn phí, Windows/IIS, hỗ trợ ASP.NET Core) |
+| Domain | **<http://vuleminh.runasp.net/>** |
+| Cách deploy | Web Deploy (hoặc FTP) |
+
+Các bước đăng ký:
+1. Tạo tài khoản tại <https://www.monsterasp.net> và chọn gói miễn phí.
+2. Tạo website mới; hệ thống cấp sẵn subdomain miễn phí dạng `<ten>.runasp.net`, ở đây là `vuleminh.runasp.net`.
+   Vì là subdomain do hosting cấp nên **không cần mua tên miền và không cần cấu hình DNS**.
+3. Trong control panel, bật **Web Deploy** (và/hoặc FTP) để lấy thông tin đăng nhập dùng cho CI/CD.
+4. Nếu sau này muốn dùng tên miền riêng (ví dụ `vuleminh.com`): mua tên miền, thêm domain vào website trên MonsterASP rồi trỏ DNS theo hướng dẫn bên dưới.
+
 ### 2.1. Domain (tên miền)
 
 - Là địa chỉ dễ nhớ thay cho địa chỉ IP, ví dụ `demomvc.vn`.
@@ -113,7 +128,45 @@ Trên GitHub vào **Settings → Secrets and variables → Actions → New repos
 
 Không bao giờ ghi mật khẩu trực tiếp vào file YAML.
 
-### 4.2. Phương án deploy lên VPS Linux
+### 4.2. Deploy lên MonsterASP.NET bằng Web Deploy (dùng cho vuleminh.runasp.net)
+
+Web Deploy (`msdeploy`) chạy trên Windows nên job dùng `windows-latest`:
+
+```yaml
+name: Deploy DemoMVC to MonsterASP.NET
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-deploy:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish
+        run: dotnet publish DemoMVC.csproj -c Release -o publish
+
+      - name: Deploy qua Web Deploy
+        uses: rasmusbuchholdt/simply-web-deploy@2.1.0
+        with:
+          website-name: ${{ secrets.WEBSITE_NAME }}
+          server-computer-name: ${{ secrets.SERVER_COMPUTER_NAME }}
+          server-username: ${{ secrets.SERVER_USERNAME }}
+          server-password: ${{ secrets.SERVER_PASSWORD }}
+          source-path: '\publish\'
+```
+
+Các secret `WEBSITE_NAME`, `SERVER_COMPUTER_NAME`, `SERVER_USERNAME`, `SERVER_PASSWORD` lấy trong phần **Web Deploy** ở control panel của MonsterASP.NET.
+Sau khi workflow chạy xong, mở <http://vuleminh.runasp.net/> để kiểm tra phiên bản mới.
+
+### 4.3. Phương án deploy lên VPS Linux
 
 Thay bước "Deploy qua FTP" bằng:
 

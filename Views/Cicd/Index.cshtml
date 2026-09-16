@@ -22,6 +22,15 @@
     <p>Lợi ích: giảm thao tác thủ công (build, copy file, FTP…), phát hiện lỗi sớm, triển khai nhanh và nhất quán.</p>
 
     <h2>1. Đăng ký hosting và domain</h2>
+    <div class="alert alert-success">
+        <h5 class="alert-heading">Hosting &amp; domain của dự án này</h5>
+        <ul class="mb-0">
+            <li>Hosting: <strong>MonsterASP.NET</strong> (gói miễn phí, Windows/IIS, hỗ trợ ASP.NET Core).</li>
+            <li>Domain: <a href="http://vuleminh.runasp.net/" target="_blank" rel="noopener"><strong>http://vuleminh.runasp.net/</strong></a>
+                – subdomain miễn phí do hosting cấp nên không cần mua tên miền hay cấu hình DNS.</li>
+            <li>Deploy: bật <strong>Web Deploy</strong> trong control panel, dùng GitHub Actions tự động triển khai (xem phần 3).</li>
+        </ul>
+    </div>
     <h3>Domain (tên miền)</h3>
     <ul>
         <li>Là địa chỉ dễ nhớ thay cho IP, ví dụ <code>demomvc.vn</code>. Mua tại các nhà đăng ký (Mắt Bão, PA Vietnam, Namecheap, Cloudflare…), gia hạn theo năm.</li>
@@ -101,6 +110,31 @@ jobs:
     <h3>Cấu hình Secrets</h3>
     <p>Trên GitHub: <em>Settings → Secrets and variables → Actions → New repository secret</em>, thêm
         <code>FTP_SERVER</code>, <code>FTP_USERNAME</code>, <code>FTP_PASSWORD</code>. Không bao giờ ghi mật khẩu trực tiếp vào file YAML.</p>
+
+    <h3>Deploy lên MonsterASP.NET bằng Web Deploy (vuleminh.runasp.net)</h3>
+    <p>Web Deploy chạy trên Windows nên dùng <code>runs-on: windows-latest</code>:</p>
+<pre class="code">jobs:
+  build-deploy:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@@v4
+      - uses: actions/setup-dotnet@@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish
+        run: dotnet publish DemoMVC.csproj -c Release -o publish
+
+      - name: Deploy qua Web Deploy
+        uses: rasmusbuchholdt/simply-web-deploy@@2.1.0
+        with:
+          website-name: ${{ secrets.WEBSITE_NAME }}
+          server-computer-name: ${{ secrets.SERVER_COMPUTER_NAME }}
+          server-username: ${{ secrets.SERVER_USERNAME }}
+          server-password: ${{ secrets.SERVER_PASSWORD }}
+          source-path: '\publish\'</pre>
+    <p>Các secret lấy trong phần <strong>Web Deploy</strong> ở control panel MonsterASP.NET. Chạy xong mở
+        <a href="http://vuleminh.runasp.net/" target="_blank" rel="noopener">vuleminh.runasp.net</a> để kiểm tra.</p>
 
     <h3>Phương án VPS Linux (thay bước Deploy)</h3>
 <pre class="code">      - name: Copy lên VPS
