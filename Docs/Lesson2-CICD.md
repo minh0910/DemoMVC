@@ -26,13 +26,13 @@ Lợi ích:
 |---|---|
 | Nhà cung cấp hosting | **MonsterASP.NET** (gói miễn phí, Windows/IIS, hỗ trợ ASP.NET Core) |
 | Domain | **<http://vuleminh.runasp.net/>** |
-| Cách deploy | Web Deploy (hoặc FTP) |
+| Cách deploy | GitHub Actions + FTP |
 
 Các bước đăng ký:
 1. Tạo tài khoản tại <https://www.monsterasp.net> và chọn gói miễn phí.
 2. Tạo website mới; hệ thống cấp sẵn subdomain miễn phí dạng `<ten>.runasp.net`, ở đây là `vuleminh.runasp.net`.
    Vì là subdomain do hosting cấp nên **không cần mua tên miền và không cần cấu hình DNS**.
-3. Trong control panel, bật **Web Deploy** (và/hoặc FTP) để lấy thông tin đăng nhập dùng cho CI/CD.
+3. Trong control panel, mục **Deploy → FTP / SFTP access**, lấy Login và Password FTP để dùng cho CI/CD.
 4. Nếu sau này muốn dùng tên miền riêng (ví dụ `vuleminh.com`): mua tên miền, thêm domain vào website trên MonsterASP rồi trỏ DNS theo hướng dẫn bên dưới.
 
 ### 2.1. Domain (tên miền)
@@ -128,42 +128,93 @@ Trên GitHub vào **Settings → Secrets and variables → Actions → New repos
 
 Không bao giờ ghi mật khẩu trực tiếp vào file YAML.
 
-### 4.2. Deploy lên MonsterASP.NET bằng Web Deploy (dùng cho vuleminh.runasp.net)
+### 4.2. Workflow thực tế của dự án: deploy lên vuleminh.runasp.net qua FTP
 
-Web Deploy (`msdeploy`) chạy trên Windows nên job dùng `windows-latest`:
+File `.github/workflows/deploy.yml` đang dùng trong repo:
 
 ```yaml
-name: Deploy DemoMVC to MonsterASP.NET
+name: Build & Deploy to MonsterASP.NET
 
+# Tự động chạy mỗi khi push lên nhánh main, hoặc bấm chạy tay trong tab Actions
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
-jobs:
-  build-deploy:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
+env:
+  FTP_HOST: site84980.siteasp.net
+  FTP_DIR: /wwwroot
 
-      - uses: actions/setup-dotnet@v4
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài .NET 10 SDK
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Publish
-        run: dotnet publish DemoMVC.csproj -c Release -o publish
+      - name: Restore
+        run: dotnet restore
 
-      - name: Deploy qua Web Deploy
-        uses: rasmusbuchholdt/simply-web-deploy@2.1.0
-        with:
-          website-name: ${{ secrets.WEBSITE_NAME }}
-          server-computer-name: ${{ secrets.SERVER_COMPUTER_NAME }}
-          server-username: ${{ secrets.SERVER_USERNAME }}
-          server-password: ${{ secrets.SERVER_PASSWORD }}
-          source-path: '\publish\'
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish DemoMVC.csproj --configuration Release --output ./publish --runtime win-x86
+
+      - name: Cài lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Deploy lên vuleminh.runasp.net qua FTP
+        env:
+          FTP_USER: ${{ secrets.SERVER_USERNAME }}
+          LFTP_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+        run: |
+          # app_offline.htm: IIS tạm dừng ứng dụng để ghi đè được các file .dll đang chạy
+          echo '<h1>Website đang được cập nhật, vui lòng quay lại sau ít giây...</h1>' > app_offline.htm
+          lftp --env-password -u "$FTP_USER" "$FTP_HOST" <<EOF
+          set cmd:fail-exit yes
+          # FTPS của hosting dùng chứng chỉ thiếu chuỗi CA: vẫn mã hoá nhưng bỏ kiểm tra chứng chỉ
+          set ssl:verify-certificate no
+          set net:max-retries 3
+          set net:timeout 30
+          put app_offline.htm -o $FTP_DIR/app_offline.htm
+          mirror --reverse --no-perms --verbose --parallel=4 ./publish/ $FTP_DIR/
+          rm $FTP_DIR/app_offline.htm
+          bye
+          EOF
 ```
 
-Các secret `WEBSITE_NAME`, `SERVER_COMPUTER_NAME`, `SERVER_USERNAME`, `SERVER_PASSWORD` lấy trong phần **Web Deploy** ở control panel của MonsterASP.NET.
+Giải thích:
+- **Trigger**: chạy khi push lên `main` hoặc bấm *Run workflow* trong tab Actions.
+- **Publish** với `--runtime win-x86` vì hosting chạy IIS trên Windows.
+- **lftp** upload thư mục `publish/` vào `/wwwroot` (website root trên MonsterASP.NET).
+- **app_offline.htm**: upload trước để IIS tạm dừng ứng dụng, tránh lỗi file `.dll` đang bị khoá; upload xong thì xoá để website chạy lại.
+- `set ssl:verify-certificate no`: FTPS của hosting dùng chứng chỉ thiếu chuỗi CA, kết nối vẫn mã hoá nhưng bỏ bước kiểm tra chứng chỉ.
+- `mirror --no-perms`: server Windows không hỗ trợ `chmod` nên không đặt quyền file.
+
+Secrets cần tạo (lấy trong **Deploy → FTP / SFTP access** của control panel):
+
+| Secret | Giá trị |
+|---|---|
+| `SERVER_USERNAME` | Login FTP, ví dụ `site84980` |
+| `SERVER_PASSWORD` | Mật khẩu FTP |
+
+Các lỗi đã gặp khi thiết lập và cách xử lý:
+
+| Lỗi | Nguyên nhân | Cách xử lý |
+|---|---|---|
+| `ERROR_USER_UNAUTHORIZED (401)` khi dùng Web Deploy | WebDeploy trong control panel đang **Disabled**, chưa có tài khoản | Bật WebDeploy, hoặc chuyển sang deploy bằng FTP |
+| `Certificate verification: The certificate is NOT trusted` | Chứng chỉ FTPS của hosting thiếu chuỗi CA | `set ssl:verify-certificate no` |
+| `SITE CHMOD are not supported` | Server Windows không hỗ trợ đặt quyền file | `mirror --no-perms` |
+| Push file workflow bị từ chối | Token GitHub thiếu quyền `workflow` | `gh auth refresh -s workflow` |
+
+> Cách khác: nếu bật **WebDeploy** trong control panel, có thể dùng action `rasmusbuchholdt/simply-web-deploy` (chạy trên `windows-latest`) với các secret `WEBSITE_NAME`, `SERVER_COMPUTER_NAME` (`https://site84980.siteasp.net:8172`), `SERVER_USERNAME`, `SERVER_PASSWORD` (mật khẩu WebDeploy).
+
 Sau khi workflow chạy xong, mở <http://vuleminh.runasp.net/> để kiểm tra phiên bản mới.
 
 ### 4.3. Phương án deploy lên VPS Linux
