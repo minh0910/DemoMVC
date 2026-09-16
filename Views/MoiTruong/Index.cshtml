@@ -1,0 +1,75 @@
+@{
+    ViewData["Title"] = "1. Môi trường lập trình";
+}
+
+<article class="lesson">
+    <span class="badge text-bg-primary">Mục 1</span>
+    <h1 class="mt-2">Tìm hiểu về môi trường lập trình</h1>
+    <p class="lead">Để lập trình ASP.NET Core MVC cần 3 thứ: <strong>.NET SDK</strong> (bộ công cụ biên dịch &amp; chạy),
+        <strong>trình soạn thảo VS Code</strong> và các <strong>Extension</strong> hỗ trợ C#.</p>
+
+    <h2>1. .NET là gì?</h2>
+    <ul>
+        <li><strong>.NET</strong> là nền tảng lập trình mã nguồn mở, đa nền tảng (Windows, macOS, Linux) của Microsoft.
+            Ngôn ngữ chính là <strong>C#</strong>.</li>
+        <li><strong>ASP.NET Core</strong> là framework làm web trên .NET; <strong>MVC</strong> là một kiểu tổ chức ứng dụng web trong ASP.NET Core.</li>
+        <li><strong>.NET SDK</strong> (Software Development Kit) gồm trình biên dịch, CLI <code>dotnet</code>, thư viện. Máy chỉ để chạy web thì chỉ cần <strong>.NET Runtime</strong>.</li>
+        <li>Phiên bản: bản <strong>LTS</strong> (hỗ trợ dài hạn, 3 năm) ra năm lẻ như .NET 8, .NET 10; bản <strong>STS</strong> (18 tháng/2 năm) như .NET 9. Dự án này dùng <code>net10.0</code>.</li>
+    </ul>
+
+    <h2>2. Cài đặt .NET SDK</h2>
+    <ol>
+        <li>Truy cập <a href="https://dotnet.microsoft.com/download" target="_blank" rel="noopener">dotnet.microsoft.com/download</a>, chọn .NET SDK bản LTS mới nhất theo hệ điều hành.</li>
+        <li>Windows / macOS: chạy file cài đặt (.exe / .pkg). Trên macOS có thể dùng Homebrew: <code>brew install --cask dotnet-sdk</code>.</li>
+        <li>Mở Terminal kiểm tra:</li>
+    </ol>
+<pre class="code"><span class="cm"># Xem phiên bản SDK đang dùng</span>
+dotnet --version
+
+<span class="cm"># Liệt kê tất cả SDK / Runtime đã cài</span>
+dotnet --list-sdks
+dotnet --list-runtimes
+
+<span class="cm"># Thông tin chi tiết môi trường</span>
+dotnet --info</pre>
+
+    <h2>3. Cài đặt Visual Studio Code</h2>
+    <ol>
+        <li>Tải tại <a href="https://code.visualstudio.com" target="_blank" rel="noopener">code.visualstudio.com</a> và cài đặt.</li>
+        <li>macOS: mở Command Palette (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>) → <em>Shell Command: Install 'code' command in PATH</em> để mở thư mục bằng lệnh <code>code .</code></li>
+    </ol>
+
+    <h2>4. Các Extension nên cài</h2>
+    <table class="table table-bordered align-middle">
+        <thead class="table-light"><tr><th>Extension</th><th>Tác dụng</th></tr></thead>
+        <tbody>
+            <tr><td><strong>C# Dev Kit</strong> (Microsoft)</td><td>Solution Explorer, chạy/debug, quản lý project, test. Tự cài kèm <em>C#</em> và <em>.NET Install Tool</em>.</td></tr>
+            <tr><td><strong>C#</strong> (Microsoft)</td><td>Tô màu cú pháp, gợi ý code (IntelliSense), báo lỗi, debug.</td></tr>
+            <tr><td><strong>.NET Install Tool</strong></td><td>Tự tải runtime/SDK mà các extension khác cần.</td></tr>
+            <tr><td><strong>IntelliCode for C# Dev Kit</strong></td><td>Gợi ý code thông minh bằng AI.</td></tr>
+            <tr><td><strong>NuGet Gallery</strong></td><td>Tìm và cài thư viện NuGet bằng giao diện.</td></tr>
+            <tr><td><strong>Auto Rename Tag</strong>, <strong>Bootstrap 5 Snippets</strong></td><td>Hỗ trợ viết HTML trong file <code>.cshtml</code>.</td></tr>
+            <tr><td><strong>GitLens</strong></td><td>Xem lịch sử Git ngay trong editor.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>5. Các lệnh <code>dotnet</code> CLI thường dùng</h2>
+<pre class="code"><span class="cm"># Tạo dự án MVC mới</span>
+dotnet new mvc -n DemoMVC
+cd DemoMVC
+
+<span class="cm"># Tạo file .gitignore chuẩn cho .NET (bỏ qua bin/ obj/)</span>
+dotnet new gitignore
+
+dotnet restore          <span class="cm"># tải các package NuGet</span>
+dotnet build            <span class="cm"># biên dịch</span>
+dotnet run              <span class="cm"># chạy ứng dụng</span>
+dotnet watch            <span class="cm"># chạy + tự tải lại khi sửa code (hot reload)</span>
+dotnet add package Tên.Package   <span class="cm"># thêm thư viện</span>
+dotnet publish -c Release -o ./publish   <span class="cm"># đóng gói để triển khai</span></pre>
+
+    <div class="alert alert-info">
+        <strong>Kiểm tra nhanh:</strong> nếu <code>dotnet run</code> in ra <code>Now listening on: http://localhost:5231</code>
+        và mở được trang trong trình duyệt thì môi trường đã sẵn sàng.
+    </div>
+</article>

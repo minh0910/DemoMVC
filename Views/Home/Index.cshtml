@@ -1,8 +1,30 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Trang chủ";
+    var chuDe = new[]
+    {
+        (So: 1, Ten: "Môi trường lập trình", MoTa: "Cài đặt .NET SDK, VS Code và các Extension cần thiết.", Controller: "MoiTruong"),
+    };
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="p-4 p-md-5 mb-4 bg-light rounded-3 border">
+    <h1 class="display-6 fw-bold">Tìm hiểu ASP.NET Core MVC</h1>
+    <p class="lead mb-0">
+        Tổng hợp kiến thức từ mục 1 đến mục 6. Mỗi bài có phần lý thuyết, đoạn code mẫu
+        và (với các mục 4–6) ví dụ chạy trực tiếp ngay trên website này.
+    </p>
+</div>
+
+<div class="row g-3">
+    @foreach (var c in chuDe)
+    {
+        <div class="col-md-6 col-lg-4">
+            <a class="card h-100 text-decoration-none topic-card" asp-controller="@c.Controller" asp-action="Index">
+                <div class="card-body">
+                    <span class="badge text-bg-primary mb-2">Mục @c.So</span>
+                    <h5 class="card-title text-dark">@c.Ten</h5>
+                    <p class="card-text text-muted">@c.MoTa</p>
+                </div>
+            </a>
+        </div>
+    }
 </div>
