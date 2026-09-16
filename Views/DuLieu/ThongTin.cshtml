@@ -1,0 +1,48 @@
+@model SinhVien
+@{
+    ViewData["Title"] = "Truyền Model sang View";
+}
+
+<div class="lesson">
+    <a asp-action="Index">← Mục 5</a>
+    <h1>Ví dụ: Truyền 1 đối tượng Model sang View</h1>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+<pre class="code"><span class="cm">// Controller: /DuLieu/ThongTin/SV001</span>
+public IActionResult ThongTin(string id = "SV001")
+{
+    var sv = _dsSinhVien.FirstOrDefault(s =&gt; s.MaSV == id);
+    if (sv == null) return NotFound();
+    return View(sv);            <span class="cm">// truyền Model</span>
+}
+
+<span class="cm">&lt;!-- View: khai báo kiểu Model --&gt;</span>
+@@model SinhVien
+
+&lt;dt&gt;@@Html.DisplayNameFor(m =&gt; m.HoTen)&lt;/dt&gt;
+&lt;dd&gt;@@Model.HoTen&lt;/dd&gt;
+&lt;dt&gt;@@Html.DisplayNameFor(m =&gt; m.Tuoi)&lt;/dt&gt;
+&lt;dd&gt;@@Model.Tuoi&lt;/dd&gt;</pre>
+            <p>Ưu điểm so với ViewBag: có <strong>IntelliSense</strong>, <strong>kiểm tra kiểu lúc biên dịch</strong>, gõ sai tên thuộc tính sẽ báo lỗi ngay.
+                <code>Html.DisplayNameFor</code> lấy tên hiển thị từ <code>[Display(Name = "...")]</code>.</p>
+        </div>
+        <div class="col-lg-6">
+            <div class="demo-box">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">@Html.DisplayNameFor(m => m.MaSV)</dt><dd class="col-sm-8">@Model.MaSV</dd>
+                    <dt class="col-sm-4">@Html.DisplayNameFor(m => m.HoTen)</dt><dd class="col-sm-8">@Model.HoTen</dd>
+                    <dt class="col-sm-4">@Html.DisplayNameFor(m => m.Tuoi)</dt><dd class="col-sm-8">@Model.Tuoi</dd>
+                    <dt class="col-sm-4">@Html.DisplayNameFor(m => m.Email)</dt><dd class="col-sm-8">@(Model.Email ?? "(chưa có)")</dd>
+                    <dt class="col-sm-4">@Html.DisplayNameFor(m => m.Khoa)</dt><dd class="col-sm-8">@Model.Khoa</dd>
+                </dl>
+            </div>
+            <p class="mt-3">
+                Thử mã khác: <a asp-action="ThongTin" asp-route-id="SV002">SV002</a> ·
+                <a asp-action="ThongTin" asp-route-id="SV003">SV003</a> ·
+                <a asp-action="ThongTin" asp-route-id="SV999">SV999</a> (không tồn tại → 404) ·
+                <a asp-action="DanhSach">Xem danh sách</a>
+            </p>
+        </div>
+    </div>
+</div>

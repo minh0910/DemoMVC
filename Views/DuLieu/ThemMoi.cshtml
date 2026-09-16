@@ -1,0 +1,87 @@
+@model SinhVien
+@{
+    ViewData["Title"] = "Thêm sinh viên";
+}
+
+<div class="lesson">
+    <a asp-action="Index">← Mục 5</a>
+    <h1>Ví dụ: View gửi Model về Controller</h1>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+<pre class="code"><span class="cm">&lt;!-- View --&gt;</span>
+@@model SinhVien
+&lt;form asp-action="ThemMoi" method="post"&gt;
+    &lt;div asp-validation-summary="ModelOnly"&gt;&lt;/div&gt;
+    &lt;label asp-for="HoTen"&gt;&lt;/label&gt;
+    &lt;input asp-for="HoTen" /&gt;
+    &lt;span asp-validation-for="HoTen"&gt;&lt;/span&gt;
+    ...
+&lt;/form&gt;
+
+<span class="cm">// Controller</span>
+[HttpGet]
+public IActionResult ThemMoi() =&gt; View(new SinhVien());
+
+[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult ThemMoi(SinhVien sv)   <span class="cm">// model binding</span>
+{
+    if (!ModelState.IsValid)
+        return View(sv);    <span class="cm">// trả lại form + lỗi</span>
+
+    _dsSinhVien.Add(sv);
+    return RedirectToAction("DanhSach");
+}</pre>
+            <ul>
+                <li><code>asp-for="HoTen"</code> sinh ra <code>name="HoTen"</code>, <code>id</code>, <code>value</code>, kiểu input và thuộc tính kiểm tra dữ liệu từ Data Annotations.</li>
+                <li><strong>Model binding</strong> tạo đối tượng <code>SinhVien</code> từ các field trong form có tên trùng thuộc tính.</li>
+                <li>Kiểm tra 2 lớp: <strong>client</strong> (jQuery Validation, trước khi gửi) và <strong>server</strong> (<code>ModelState.IsValid</code>, luôn bắt buộc).</li>
+                <li>Form tag helper tự thêm token chống giả mạo CSRF, kiểm tra bằng <code>[ValidateAntiForgeryToken]</code>.</li>
+                <li>Mẫu <strong>Post/Redirect/Get</strong>: lưu xong thì redirect để F5 không gửi lại form.</li>
+            </ul>
+        </div>
+        <div class="col-lg-6">
+            <div class="demo-box">
+                <form asp-action="ThemMoi" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="mb-2">
+                        <label asp-for="MaSV" class="form-label"></label>
+                        <input asp-for="MaSV" class="form-control" />
+                        <span asp-validation-for="MaSV" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-2">
+                        <label asp-for="HoTen" class="form-label"></label>
+                        <input asp-for="HoTen" class="form-control" />
+                        <span asp-validation-for="HoTen" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-2">
+                        <label asp-for="Tuoi" class="form-label"></label>
+                        <input asp-for="Tuoi" class="form-control" />
+                        <span asp-validation-for="Tuoi" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-2">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Khoa" class="form-label"></label>
+                        <select asp-for="Khoa" class="form-select">
+                            <option>CNTT</option>
+                            <option>Kinh tế</option>
+                            <option>Ngoại ngữ</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success">Lưu</button>
+                    <a asp-action="DanhSach" class="btn btn-outline-secondary">Danh sách</a>
+                </form>
+            </div>
+            <p class="small text-muted mt-2">Thử để trống họ tên, nhập tuổi 10 hoặc mã trùng <code>SV001</code> để xem thông báo lỗi.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

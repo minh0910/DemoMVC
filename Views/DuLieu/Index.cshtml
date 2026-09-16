@@ -1,0 +1,77 @@
+@{
+    ViewData["Title"] = "5. Gửi nhận dữ liệu M-V-C";
+}
+
+<article class="lesson">
+    <span class="badge text-bg-primary">Mục 5</span>
+    <h1 class="mt-2">Tìm hiểu về gửi nhận dữ liệu giữa M-V-C</h1>
+
+    <h2>1. Controller, View, Model</h2>
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="card h-100 border-danger"><div class="card-body">
+                <h5 class="text-danger">Controller</h5>
+                <ul class="mb-0">
+                    <li>Class trong <code>Controllers/</code>, kế thừa <code>Controller</code>, tên kết thúc bằng <code>Controller</code>.</li>
+                    <li>Mỗi phương thức public là một <strong>action</strong>, trả về <code>IActionResult</code>:
+                        <code>View()</code>, <code>RedirectToAction()</code>, <code>Json()</code>, <code>Content()</code>, <code>NotFound()</code>…</li>
+                    <li><code>[HttpGet]</code>/<code>[HttpPost]</code> để tách action hiển thị form và action xử lý form.</li>
+                </ul>
+            </div></div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100 border-primary"><div class="card-body">
+                <h5 class="text-primary">View</h5>
+                <ul class="mb-0">
+                    <li>File <code>.cshtml</code> trong <code>Views/&lt;TênController&gt;/</code>.</li>
+                    <li>Cú pháp <strong>Razor</strong>: <code>@@biến</code>, <code>@@{ code }</code>, <code>@@if</code>, <code>@@foreach</code>.</li>
+                    <li><code>@@model KiểuDữLiệu</code> khai báo View mạnh kiểu (strongly-typed).</li>
+                    <li><strong>Tag Helper</strong>: <code>asp-for</code>, <code>asp-action</code>, <code>asp-validation-for</code>.</li>
+                </ul>
+            </div></div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100 border-success"><div class="card-body">
+                <h5 class="text-success">Model</h5>
+                <ul class="mb-0">
+                    <li>Class C# trong <code>Models/</code> mô tả dữ liệu, ví dụ <code>SinhVien</code>.</li>
+                    <li><strong>Data Annotations</strong> để kiểm tra dữ liệu: <code>[Required]</code>, <code>[Range]</code>, <code>[StringLength]</code>, <code>[EmailAddress]</code>, <code>[Display]</code>.</li>
+                    <li><strong>Model binding</strong> tự gán dữ liệu request vào Model.</li>
+                </ul>
+            </div></div>
+        </div>
+    </div>
+
+    <h2>2. Các hướng truyền dữ liệu</h2>
+    <table class="table table-bordered">
+        <thead class="table-light"><tr><th>Hướng</th><th>Cách thực hiện</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Controller → View</strong></td><td><code>ViewBag</code>, <code>ViewData</code>, <code>TempData</code> (xem mục 6), hoặc <code>return View(model)</code>.</td></tr>
+            <tr><td><strong>View → Controller</strong></td><td>Form (GET/POST), query string, route value (<code>/ThongTin/SV001</code>). Controller nhận qua <strong>tham số action</strong>, <code>IFormCollection</code>, <code>Request.Form</code>, <code>Request.Query</code>.</td></tr>
+            <tr><td><strong>Qua Model</strong></td><td>Controller gửi đối tượng bằng <code>View(model)</code>; View dùng <code>@@model</code> + <code>asp-for</code>; khi submit, model binding tạo lại đối tượng và kiểm tra <code>ModelState.IsValid</code>.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>3. Ví dụ minh hoạ</h2>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="demo-box h-100">
+                <h5>Gửi nhận dữ liệu giữa Controller và View</h5>
+                <ul class="mb-0">
+                    <li><a asp-action="ControllerSangView">Controller → View (ViewBag, ViewData)</a></li>
+                    <li><a asp-action="ViewSangController">View → Controller (form GET/POST, tham số, IFormCollection)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="demo-box h-100">
+                <h5>Gửi nhận dữ liệu thông qua Model</h5>
+                <ul class="mb-0">
+                    <li><a asp-action="ThongTin" asp-route-id="SV001">Truyền 1 đối tượng Model sang View</a></li>
+                    <li><a asp-action="DanhSach">Truyền danh sách Model sang View</a></li>
+                    <li><a asp-action="ThemMoi">View gửi Model về Controller (model binding + validation)</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</article>
