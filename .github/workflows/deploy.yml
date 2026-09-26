@@ -31,6 +31,17 @@ jobs:
       - name: Publish
         run: dotnet publish DemoMVC.csproj --configuration Release --output ./publish --runtime win-x86
 
+      - name: Tạo appsettings.Production.json từ secret
+        env:
+          DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+        run: |
+          # Repo public nên connection string (có mật khẩu) để trong secret, không commit vào code
+          if [ -z "$DB_CONNECTION_STRING" ]; then
+            echo "::warning::Chưa có secret DB_CONNECTION_STRING, trang Product sẽ không kết nối được CSDL"
+            exit 0
+          fi
+          jq -n --arg cs "$DB_CONNECTION_STRING" '{ConnectionStrings: {DefaultConnection: $cs}}' > ./publish/appsettings.Production.json
+
       - name: Cài lftp
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
 

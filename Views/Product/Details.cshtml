@@ -1,0 +1,65 @@
+﻿
+@model DemoMVC.Models.Product
+
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+}
+
+<h1>Chi tiết sản phẩm</h1>
+
+<div>
+    <h4>Product</h4>
+    <hr />
+
+    <dl class="row">
+
+        <dt class="col-sm-3">
+            ID
+        </dt>
+        <dd class="col-sm-9">
+            @Model.Id
+        </dd>
+
+        <dt class="col-sm-3">
+            Tên sản phẩm
+        </dt>
+        <dd class="col-sm-9">
+            @Model.Name
+        </dd>
+
+        <dt class="col-sm-3">
+            Giá
+        </dt>
+        <dd class="col-sm-9">
+            @Model.Price.ToString("N0") VNĐ
+        </dd>
+
+        <dt class="col-sm-3">
+            Ngày tạo
+        </dt>
+        <dd class="col-sm-9">
+            @Model.CreatedAt.ToLocalTime()
+        </dd>
+
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Edit"
+       asp-route-id="@Model.Id"
+       class="btn btn-warning">
+        Sửa
+    </a>
+
+    <a asp-action="Delete"
+       asp-route-id="@Model.Id"
+       class="btn btn-danger">
+        Xóa
+    </a>
+
+    <a asp-action="Index"
+       class="btn btn-secondary">
+        Quay lại danh sách
+    </a>
+</div>
+
