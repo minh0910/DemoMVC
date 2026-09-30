@@ -1,14 +1,14 @@
-﻿
 @model DemoMVC.Models.Product
 
 @{
-    ViewData["Title"] = "Chi tiết sản phẩm";
+    ViewData["Title"] = "Xóa sản phẩm";
 }
 
-<h1>Chi tiết sản phẩm</h1>
+<h1>Xóa sản phẩm</h1>
+
+<h4 class="text-danger">Bạn có chắc muốn xóa sản phẩm này?</h4>
 
 <div>
-    <h4>Product</h4>
     <hr />
 
     <dl class="row">
@@ -44,16 +44,20 @@
     </dl>
 </div>
 
-<div>
-    <a asp-action="Edit"
-       asp-route-id="@Model.Id"
-       class="btn btn-warning">
-        Sửa
-    </a>
+<form asp-controller="Product"
+      asp-action="Delete"
+      asp-route-id="@Model.Id"
+      method="post">
 
-    <a asp-action="Index"
+    <button type="submit"
+            class="btn btn-danger">
+        Xóa
+    </button>
+
+    <a asp-controller="Product"
+       asp-action="Index"
        class="btn btn-secondary">
-        Quay lại danh sách
+        Quay lại
     </a>
-</div>
 
+</form>
