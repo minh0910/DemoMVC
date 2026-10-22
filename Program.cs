@@ -1,4 +1,5 @@
 using DemoMVC.Data;
+using DemoMVC.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 options.UseSqlServer(
 builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Service sinh mã sinh viên tự động (dùng chung DbContext của request nên đăng ký Scoped)
+builder.Services.AddScoped<StudentCodeGenerator>();
 
 var app = builder.Build();
 

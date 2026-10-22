@@ -1,0 +1,47 @@
+@model IEnumerable<DemoMVC.Models.Major>
+
+@{
+    ViewData["Title"] = "Danh sách ngành học";
+}
+
+<h1>Danh sách ngành học</h1>
+<p class="text-muted">
+    Mỗi ngành thuộc một khoa (khoá ngoại <code>FacultyCode</code>). Mã ngành 2 chữ số là phần thứ 3 của mã sinh viên.
+</p>
+
+<partial name="_ThongBao" />
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Thêm ngành</a>
+    <a class="btn btn-outline-secondary" asp-controller="Faculty" asp-action="Index">Khoa</a>
+    <a class="btn btn-outline-secondary" asp-controller="Student" asp-action="Index">Sinh viên</a>
+</p>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>@Html.DisplayNameFor(m => m.MajorCode)</th>
+                <th>@Html.DisplayNameFor(m => m.Name)</th>
+                <th>@Html.DisplayNameFor(m => m.FacultyCode)</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td><code>@item.MajorCode</code></td>
+                    <td>@item.Name</td>
+                    <td>
+                        <a asp-controller="Faculty" asp-action="Details" asp-route-id="@item.FacultyCode">@item.Faculty?.Name</a>
+                    </td>
+                    <td class="text-nowrap">
+                        <a asp-action="Edit" asp-route-id="@item.MajorCode">Sửa</a> |
+                        <a asp-action="Delete" asp-route-id="@item.MajorCode">Xóa</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

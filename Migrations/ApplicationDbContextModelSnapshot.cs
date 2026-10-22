@@ -22,6 +22,193 @@ namespace DemoMVC.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("DemoMVC.Models.Faculty", b =>
+                {
+                    b.Property<string>("FacultyCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("FacultyCode");
+
+                    b.ToTable("Faculties");
+
+                    b.HasData(
+                        new
+                        {
+                            FacultyCode = "CNTT",
+                            Name = "Khoa Công nghệ thông tin"
+                        },
+                        new
+                        {
+                            FacultyCode = "CD",
+                            Name = "Khoa Cơ điện"
+                        },
+                        new
+                        {
+                            FacultyCode = "DKNL",
+                            Name = "Khoa Dầu khí và Năng lượng"
+                        },
+                        new
+                        {
+                            FacultyCode = "KTQTKD",
+                            Name = "Khoa Kinh tế - Quản trị kinh doanh"
+                        },
+                        new
+                        {
+                            FacultyCode = "KHKTDC",
+                            Name = "Khoa Khoa học và Kỹ thuật Địa chất"
+                        },
+                        new
+                        {
+                            FacultyCode = "MO",
+                            Name = "Khoa Mỏ"
+                        },
+                        new
+                        {
+                            FacultyCode = "MT",
+                            Name = "Khoa Môi trường"
+                        },
+                        new
+                        {
+                            FacultyCode = "TDBD",
+                            Name = "Khoa Trắc địa - Bản đồ và Quản lý đất đai"
+                        },
+                        new
+                        {
+                            FacultyCode = "XD",
+                            Name = "Khoa Xây dựng"
+                        },
+                        new
+                        {
+                            FacultyCode = "KHCB",
+                            Name = "Khoa Khoa học cơ bản"
+                        },
+                        new
+                        {
+                            FacultyCode = "LLCT",
+                            Name = "Khoa Lý luận chính trị"
+                        },
+                        new
+                        {
+                            FacultyCode = "GDQP",
+                            Name = "Khoa Giáo dục quốc phòng"
+                        });
+                });
+
+            modelBuilder.Entity("DemoMVC.Models.Major", b =>
+                {
+                    b.Property<string>("MajorCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<string>("FacultyCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("MajorCode");
+
+                    b.HasIndex("FacultyCode");
+
+                    b.ToTable("Majors");
+
+                    b.HasData(
+                        new
+                        {
+                            MajorCode = "01",
+                            FacultyCode = "MO",
+                            Name = "Kỹ thuật mỏ"
+                        },
+                        new
+                        {
+                            MajorCode = "02",
+                            FacultyCode = "MO",
+                            Name = "Kỹ thuật tuyển khoáng"
+                        },
+                        new
+                        {
+                            MajorCode = "03",
+                            FacultyCode = "DKNL",
+                            Name = "Kỹ thuật dầu khí"
+                        },
+                        new
+                        {
+                            MajorCode = "04",
+                            FacultyCode = "KHKTDC",
+                            Name = "Kỹ thuật địa chất"
+                        },
+                        new
+                        {
+                            MajorCode = "05",
+                            FacultyCode = "CNTT",
+                            Name = "Công nghệ thông tin"
+                        },
+                        new
+                        {
+                            MajorCode = "06",
+                            FacultyCode = "CNTT",
+                            Name = "Khoa học dữ liệu"
+                        },
+                        new
+                        {
+                            MajorCode = "07",
+                            FacultyCode = "TDBD",
+                            Name = "Kỹ thuật trắc địa - bản đồ"
+                        },
+                        new
+                        {
+                            MajorCode = "08",
+                            FacultyCode = "TDBD",
+                            Name = "Quản lý đất đai"
+                        },
+                        new
+                        {
+                            MajorCode = "09",
+                            FacultyCode = "CD",
+                            Name = "Kỹ thuật điện"
+                        },
+                        new
+                        {
+                            MajorCode = "10",
+                            FacultyCode = "CD",
+                            Name = "Kỹ thuật cơ điện tử"
+                        },
+                        new
+                        {
+                            MajorCode = "11",
+                            FacultyCode = "XD",
+                            Name = "Kỹ thuật xây dựng"
+                        },
+                        new
+                        {
+                            MajorCode = "12",
+                            FacultyCode = "MT",
+                            Name = "Kỹ thuật môi trường"
+                        },
+                        new
+                        {
+                            MajorCode = "13",
+                            FacultyCode = "KTQTKD",
+                            Name = "Kế toán"
+                        },
+                        new
+                        {
+                            MajorCode = "14",
+                            FacultyCode = "KTQTKD",
+                            Name = "Quản trị kinh doanh"
+                        });
+                });
+
             modelBuilder.Entity("DemoMVC.Models.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -45,6 +232,105 @@ namespace DemoMVC.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("DemoMVC.Models.Student", b =>
+                {
+                    b.Property<string>("StudentCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("EnrollmentYear")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FacultyCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("MajorCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<string>("TrainingSystemCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.HasKey("StudentCode");
+
+                    b.HasIndex("FacultyCode");
+
+                    b.HasIndex("MajorCode");
+
+                    b.ToTable("Students");
+
+                    b.HasData(
+                        new
+                        {
+                            StudentCode = "2821050199",
+                            DateOfBirth = new DateTime(2010, 5, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            EnrollmentYear = 2028,
+                            FacultyCode = "CNTT",
+                            FullName = "Nguyễn Văn An",
+                            MajorCode = "05",
+                            TrainingSystemCode = "21"
+                        });
+                });
+
+            modelBuilder.Entity("DemoMVC.Models.Major", b =>
+                {
+                    b.HasOne("DemoMVC.Models.Faculty", "Faculty")
+                        .WithMany("Majors")
+                        .HasForeignKey("FacultyCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Faculty");
+                });
+
+            modelBuilder.Entity("DemoMVC.Models.Student", b =>
+                {
+                    b.HasOne("DemoMVC.Models.Faculty", "Faculty")
+                        .WithMany("Students")
+                        .HasForeignKey("FacultyCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DemoMVC.Models.Major", "Major")
+                        .WithMany("Students")
+                        .HasForeignKey("MajorCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Faculty");
+
+                    b.Navigation("Major");
+                });
+
+            modelBuilder.Entity("DemoMVC.Models.Faculty", b =>
+                {
+                    b.Navigation("Majors");
+
+                    b.Navigation("Students");
+                });
+
+            modelBuilder.Entity("DemoMVC.Models.Major", b =>
+                {
+                    b.Navigation("Students");
                 });
 #pragma warning restore 612, 618
         }

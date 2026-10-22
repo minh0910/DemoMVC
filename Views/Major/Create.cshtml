@@ -1,0 +1,45 @@
+@model DemoMVC.Models.Major
+
+@{
+    ViewData["Title"] = "Thêm ngành";
+}
+
+<h1>Thêm ngành</h1>
+
+<hr />
+
+<form asp-action="Create" method="post" class="col-md-6">
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="MajorCode" class="form-label"></label>
+        <input asp-for="MajorCode" class="form-control" maxlength="2" placeholder="Ví dụ: 15" />
+        <div class="form-text">Đúng 2 chữ số. Không sửa được sau khi tạo.</div>
+        <span asp-validation-for="MajorCode" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FacultyCode" class="form-label"></label>
+        <select asp-for="FacultyCode" asp-items="ViewBag.FacultyList" class="form-select">
+            <option value="">-- Chọn khoa --</option>
+        </select>
+        <span asp-validation-for="FacultyCode" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

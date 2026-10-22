@@ -1,0 +1,36 @@
+@model DemoMVC.Models.Major
+
+@{
+    ViewData["Title"] = "Xóa ngành";
+    var soSinhVien = (int)ViewBag.StudentCount;
+}
+
+<h1>Xóa ngành</h1>
+
+<dl class="row">
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.MajorCode)</dt>
+    <dd class="col-sm-9"><code>@Model.MajorCode</code></dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Name)</dt>
+    <dd class="col-sm-9">@Model.Name</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.FacultyCode)</dt>
+    <dd class="col-sm-9">@Model.Faculty?.Name</dd>
+
+    <dt class="col-sm-3">Số sinh viên</dt>
+    <dd class="col-sm-9">@soSinhVien</dd>
+</dl>
+
+@if (soSinhVien == 0)
+{
+    <div class="alert alert-warning">Bạn có chắc muốn xóa ngành này?</div>
+}
+else
+{
+    <div class="alert alert-danger">Không xóa được: vẫn còn sinh viên tham chiếu tới ngành này qua khoá ngoại.</div>
+}
+
+<form asp-action="Delete" asp-route-id="@Model.MajorCode" method="post">
+    <button type="submit" class="btn btn-danger" disabled="@(soSinhVien > 0)">Xóa</button>
+    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+</form>

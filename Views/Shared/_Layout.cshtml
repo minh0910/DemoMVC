@@ -29,6 +29,14 @@
                         <li class="nav-item"><a class="nav-link" asp-controller="TrangThai" asp-action="Index">6. Trạng thái</a></li>
                         <li class="nav-item"><a class="nav-link" asp-controller="BoCuc" asp-action="Index">7. Layout</a></li>
                         <li class="nav-item"><a class="nav-link" asp-controller="Product" asp-action="Index">8. Sản phẩm</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">10. Sinh viên</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Student" asp-action="Index">Sinh viên</a></li>
+                                <li><a class="dropdown-item" asp-controller="Major" asp-action="Index">Ngành học</a></li>
+                                <li><a class="dropdown-item" asp-controller="Faculty" asp-action="Index">Khoa</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
             </div>
