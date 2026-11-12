@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DemoMVC.Data;
+using DemoMVC.Helpers;
 using DemoMVC.Models;
 
 namespace DemoMVC.Controllers
@@ -27,15 +28,21 @@ namespace DemoMVC.Controllers
         // =========================
         // GET: Faculty/List (Ajax)
         // =========================
-        public async Task<IActionResult> List()
+        public async Task<IActionResult> List(string? keyword, int page = 1, int pageSize = PaginatedList<object>.DefaultPageSize)
         {
-            var faculties = await _context.Faculties
+            var faculties = _context.Faculties
                 .Include(f => f.Majors)
                 .Include(f => f.Students)
-                .OrderBy(f => f.Name)
-                .ToListAsync();
+                .AsQueryable();
 
-            return PartialView("_Table", faculties);
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var tuKhoa = keyword.Trim();
+                faculties = faculties.Where(f => f.FacultyCode.Contains(tuKhoa) || f.Name.Contains(tuKhoa));
+            }
+
+            var model = await PaginatedList<Faculty>.CreateAsync(faculties.OrderBy(f => f.Name), page, pageSize, keyword);
+            return PartialView("_Table", model);
         }
 
 

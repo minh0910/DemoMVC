@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DemoMVC.Data;
+using DemoMVC.Helpers;
 using DemoMVC.Models;
 
 namespace DemoMVC.Controllers
@@ -27,13 +28,19 @@ namespace DemoMVC.Controllers
         // =========================
         // GET: Product/List (Ajax)
         // =========================
-        public async Task<IActionResult> List()
+        public async Task<IActionResult> List(string? keyword, int page = 1, int pageSize = PaginatedList<object>.DefaultPageSize)
         {
-            var products = await _context.Products
-                .OrderByDescending(p => p.CreatedAt)
-                .ToListAsync();
+            var products = _context.Products.AsQueryable();
 
-            return PartialView("_Table", products);
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var tuKhoa = keyword.Trim();
+                products = products.Where(p => p.Name.Contains(tuKhoa));
+            }
+
+            var model = await PaginatedList<Product>.CreateAsync(
+                products.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id), page, pageSize, keyword);
+            return PartialView("_Table", model);
         }
 
 

@@ -1,7 +1,7 @@
-@model IEnumerable<DemoMVC.Models.Product>
+@model DemoMVC.Helpers.PaginatedList<DemoMVC.Models.Product>
 @if (!Model.Any())
 {
-    <div class="alert alert-secondary">Chưa có sản phẩm nào.</div>
+    <div class="alert alert-secondary">@(string.IsNullOrEmpty(Model.Keyword) ? "Chưa có sản phẩm nào." : $"Không tìm thấy kết quả nào cho \"{Model.Keyword}\".")</div>
 }
 else
 {
@@ -33,3 +33,4 @@ else
         </table>
     </div>
 }
+<partial name="_Pager" model="Model" />

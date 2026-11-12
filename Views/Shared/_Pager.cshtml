@@ -1,0 +1,49 @@
+@model dynamic
+@* Bài 12: thanh phân trang dùng chung, crud.js bắt click vào [data-page] *@
+@{
+    int pageIndex = Model.PageIndex, totalPages = Model.TotalPages;
+    var tu = Math.Max(1, pageIndex - 2);
+    var den = Math.Min(totalPages, pageIndex + 2);
+}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <small class="text-muted">
+        Hiển thị @Model.FirstItem - @Model.LastItem / @Model.TotalCount bản ghi
+        @if (!string.IsNullOrEmpty((string?)Model.Keyword))
+        {
+            <text>(từ khoá "<strong>@Model.Keyword</strong>")</text>
+        }
+    </small>
+    @if (totalPages > 1)
+    {
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link" href="#" data-page="@(pageIndex - 1)">« Trước</a>
+            </li>
+            @if (tu > 1)
+            {
+                <li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>
+                if (tu > 2)
+                {
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                }
+            }
+            @for (var i = tu; i <= den; i++)
+            {
+                <li class="page-item @(i == pageIndex ? "active" : "")">
+                    <a class="page-link" href="#" data-page="@i">@i</a>
+                </li>
+            }
+            @if (den < totalPages)
+            {
+                if (den < totalPages - 1)
+                {
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                }
+                <li class="page-item"><a class="page-link" href="#" data-page="@totalPages">@totalPages</a></li>
+            }
+            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <a class="page-link" href="#" data-page="@(pageIndex + 1)">Sau »</a>
+            </li>
+        </ul>
+    }
+</div>

@@ -1,7 +1,7 @@
-@model IEnumerable<DemoMVC.Models.Student>
+@model DemoMVC.Helpers.PaginatedList<DemoMVC.Models.Student>
 @if (!Model.Any())
 {
-    <div class="alert alert-secondary">Không có sinh viên nào.</div>
+    <div class="alert alert-secondary">@(string.IsNullOrEmpty(Model.Keyword) ? "Không có sinh viên nào." : $"Không tìm thấy kết quả nào cho \"{Model.Keyword}\".")</div>
 }
 else
 {
@@ -41,3 +41,4 @@ else
         </table>
     </div>
 }
+<partial name="_Pager" model="Model" />

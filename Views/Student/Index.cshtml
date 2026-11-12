@@ -1,6 +1,8 @@
 @{
     ViewData["Title"] = "Danh sách sinh viên";
     ViewData["Entity"] = "sinh viên";
+    ViewData["FilterPartial"] = "_StudentFilter";
+    ViewData["SearchHint"] = "Tên hoặc mã sinh viên";
     ViewData["Hint"] = "Mã sinh viên được <strong>sinh tự động</strong> khi thêm mới, ví dụ <code>2821050199</code>: "
         + "<code>28</code> năm nhập học (2028) · <code>21</code> hệ đào tạo · <code>05</code> ngành · <code>0199</code> số thứ tự. "
         + "Sinh viên tiếp theo cùng năm, hệ, ngành sẽ có mã <code>2821050200</code>.";
@@ -8,28 +10,9 @@
 
 <partial name="_CrudPage" />
 
-@* Lọc theo khoa và từ khoá: crud.js gửi kèm các ô của #filterForm khi tải bảng *@
-<form id="filterForm" class="row g-2 align-items-end mb-3" autocomplete="off">
-    <div class="col-md-4">
-        <label class="form-label" for="facultyCode">Khoa</label>
-        <select class="form-select" id="facultyCode" name="facultyCode" asp-items="ViewBag.FacultyList">
-            <option value="">-- Tất cả khoa --</option>
-        </select>
-    </div>
-    <div class="col-md-4">
-        <label class="form-label" for="keyword">Tìm theo tên hoặc mã</label>
-        <input class="form-control" id="keyword" name="keyword" />
-    </div>
-    <div class="col-md-4">
-        <button type="submit" class="btn btn-outline-primary">Lọc</button>
-    </div>
-</form>
 
 @section Scripts {
     <script>
-        // Đưa ô lọc lên trên bảng
-        $('#filterForm').insertBefore('#tableContainer');
-
         (function () {
             const nextCodeUrl = '@Url.Action("NextCode")';
 

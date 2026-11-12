@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using DemoMVC.Data;
+using DemoMVC.Helpers;
 using DemoMVC.Models;
 using DemoMVC.Services;
 
@@ -33,9 +34,9 @@ namespace DemoMVC.Controllers
 
 
         // =========================
-        // GET: Student/List?facultyCode=CNTT&keyword=an (Ajax)
+        // GET: Student/List?facultyCode=CNTT&keyword=an&page=2&pageSize=10 (Ajax)
         // =========================
-        public async Task<IActionResult> List(string? facultyCode, string? keyword)
+        public async Task<IActionResult> List(string? facultyCode, string? keyword, int page = 1, int pageSize = PaginatedList<object>.DefaultPageSize)
         {
             var query = _context.Students
                 .Include(s => s.Faculty)         // JOIN sang bảng Khoa qua FacultyCode
@@ -53,7 +54,8 @@ namespace DemoMVC.Controllers
                 query = query.Where(s => s.FullName.Contains(tuKhoa) || s.StudentCode.Contains(tuKhoa));
             }
 
-            return PartialView("_Table", await query.OrderBy(s => s.StudentCode).ToListAsync());
+            var model = await PaginatedList<Student>.CreateAsync(query.OrderBy(s => s.StudentCode), page, pageSize, keyword);
+            return PartialView("_Table", model);
         }
 
 
