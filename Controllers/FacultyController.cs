@@ -5,7 +5,8 @@ using DemoMVC.Models;
 
 namespace DemoMVC.Controllers
 {
-    public class FacultyController : Controller
+    // Bài 11: CRUD khoa bằng Modal + Ajax. Khoa còn ngành hoặc sinh viên thì không xoá được (Restrict)
+    public class FacultyController : AjaxCrudController
     {
         private readonly ApplicationDbContext _context;
 
@@ -17,146 +18,35 @@ namespace DemoMVC.Controllers
         // =========================
         // GET: Faculty
         // =========================
-        public async Task<IActionResult> Index()
-        {
-            var faculties = await _context.Faculties
-                .Include(f => f.Majors)          // lấy kèm các ngành của khoa qua khoá ngoại
-                .OrderBy(f => f.Name)
-                .ToListAsync();
-
-            return View(faculties);
-        }
-
-
-        // =========================
-        // GET: Faculty/Details/CNTT
-        // =========================
-        public async Task<IActionResult> Details(string? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var faculty = await _context.Faculties
-                .Include(f => f.Majors)
-                .Include(f => f.Students)
-                    .ThenInclude(s => s.Major)
-                .AsSplitQuery()
-                .FirstOrDefaultAsync(f => f.FacultyCode == id);
-
-            if (faculty == null)
-            {
-                return NotFound();
-            }
-
-            return View(faculty);
-        }
-
-
-        // =========================
-        // GET: Faculty/Create
-        // =========================
-        public IActionResult Create()
+        public IActionResult Index()
         {
             return View();
         }
 
 
         // =========================
-        // POST: Faculty/Create
+        // GET: Faculty/List (Ajax)
         // =========================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FacultyCode,Name")] Faculty faculty)
+        public async Task<IActionResult> List()
         {
-            faculty.FacultyCode = faculty.FacultyCode?.Trim().ToUpperInvariant() ?? string.Empty;
+            var faculties = await _context.Faculties
+                .Include(f => f.Majors)
+                .Include(f => f.Students)
+                .OrderBy(f => f.Name)
+                .ToListAsync();
 
-            if (ModelState.IsValid && await _context.Faculties.AnyAsync(f => f.FacultyCode == faculty.FacultyCode))
-            {
-                ModelState.AddModelError(nameof(Faculty.FacultyCode), "Mã khoa đã tồn tại");
-            }
-
-            if (ModelState.IsValid)
-            {
-                _context.Faculties.Add(faculty);
-
-                await _context.SaveChangesAsync();
-
-                TempData["ThongBao"] = $"Đã thêm {faculty.Name}";
-
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(faculty);
+            return PartialView("_Table", faculties);
         }
 
 
         // =========================
-        // GET: Faculty/Edit/CNTT
+        // GET: Faculty/Details/CNTT (Ajax)
         // =========================
-        public async Task<IActionResult> Edit(string? id)
+        public async Task<IActionResult> Details(string id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var faculty = await _context.Faculties.FindAsync(id);
-
-            if (faculty == null)
-            {
-                return NotFound();
-            }
-
-            return View(faculty);
-        }
-
-
-        // =========================
-        // POST: Faculty/Edit/CNTT
-        // Mã khoa là khoá chính (ngành, sinh viên đang tham chiếu tới) nên chỉ cho sửa tên
-        // =========================
-        [HttpPost, ActionName("Edit")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPost(string? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var faculty = await _context.Faculties.FindAsync(id);
-
-            if (faculty == null)
-            {
-                return NotFound();
-            }
-
-            if (await TryUpdateModelAsync(faculty, "", f => f.Name))
-            {
-                await _context.SaveChangesAsync();
-
-                TempData["ThongBao"] = $"Đã cập nhật {faculty.Name}";
-
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(faculty);
-        }
-
-
-        // =========================
-        // GET: Faculty/Delete/CNTT
-        // =========================
-        public async Task<IActionResult> Delete(string? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var faculty = await _context.Faculties
+                .Include(f => f.Majors)
+                .Include(f => f.Students)
                 .FirstOrDefaultAsync(f => f.FacultyCode == id);
 
             if (faculty == null)
@@ -164,43 +54,102 @@ namespace DemoMVC.Controllers
                 return NotFound();
             }
 
-            ViewBag.MajorCount = await _context.Majors.CountAsync(m => m.FacultyCode == id);
-            ViewBag.StudentCount = await _context.Students.CountAsync(s => s.FacultyCode == id);
-
-            return View(faculty);
+            return PartialView("_Details", faculty);
         }
 
 
         // =========================
-        // POST: Faculty/Delete/CNTT
+        // GET: Faculty/Form hoặc Faculty/Form/CNTT (Ajax)
         // =========================
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        public async Task<IActionResult> Form(string? id)
         {
+            if (id == null)
+            {
+                return PartialView("_Form", new Faculty());
+            }
+
             var faculty = await _context.Faculties.FindAsync(id);
 
-            if (faculty != null)
+            if (faculty == null)
             {
-                // Khoá ngoại để Restrict: còn ngành hoặc sinh viên thì không xoá được
-                var dangDuocDung = await _context.Majors.AnyAsync(m => m.FacultyCode == id)
-                    || await _context.Students.AnyAsync(s => s.FacultyCode == id);
+                return NotFound();
+            }
 
-                if (dangDuocDung)
-                {
-                    TempData["Loi"] = $"Không xoá được {faculty.Name} vì vẫn còn ngành hoặc sinh viên thuộc khoa";
+            ViewData["IsEdit"] = true;
 
-                    return RedirectToAction(nameof(Index));
-                }
+            return PartialView("_Form", faculty);
+        }
 
-                _context.Faculties.Remove(faculty);
+
+        // =========================
+        // POST: Faculty/Save (Ajax)
+        // isEdit gửi từ ô ẩn: mã khoa là khoá chính nên khi sửa chỉ đổi được tên
+        // =========================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Save(bool isEdit, [Bind("FacultyCode,Name")] Faculty input)
+        {
+            var faculty = ModelState.IsValid ? await _context.Faculties.FindAsync(input.FacultyCode) : null;
+
+            if (!isEdit && faculty != null)
+            {
+                ModelState.AddModelError(nameof(Faculty.FacultyCode), "Mã khoa đã tồn tại");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewData["IsEdit"] = isEdit;
+
+                return FormWithErrors(input);
+            }
+
+            if (!isEdit)
+            {
+                _context.Faculties.Add(input);
 
                 await _context.SaveChangesAsync();
 
-                TempData["ThongBao"] = $"Đã xoá {faculty.Name}";
+                return JsonOk($"Đã thêm {input.Name}");
             }
 
-            return RedirectToAction(nameof(Index));
+            if (faculty == null)
+            {
+                return JsonFail("Khoa không còn tồn tại");
+            }
+
+            faculty.Name = input.Name;
+
+            await _context.SaveChangesAsync();
+
+            return JsonOk($"Đã cập nhật {faculty.Name}");
+        }
+
+
+        // =========================
+        // POST: Faculty/Delete/CNTT (Ajax)
+        // =========================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var faculty = await _context.Faculties.FindAsync(id);
+
+            if (faculty == null)
+            {
+                return JsonFail("Khoa không còn tồn tại");
+            }
+
+            if (await _context.Majors.AnyAsync(m => m.FacultyCode == id)
+                || await _context.Students.AnyAsync(s => s.FacultyCode == id))
+            {
+                return JsonFail($"Không xoá được {faculty.Name} vì vẫn còn ngành hoặc sinh viên thuộc khoa");
+            }
+
+            _context.Faculties.Remove(faculty);
+
+            await _context.SaveChangesAsync();
+
+            return JsonOk($"Đã xoá {faculty.Name}");
         }
     }
 }

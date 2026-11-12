@@ -53,9 +53,15 @@
             &copy; 2026 - DemoMVC - Tìm hiểu ASP.NET Core MVC
         </div>
     </footer>
+    @* Bài 11: modal, thông báo, token dùng chung cho CRUD bằng Ajax *@
+    <partial name="_CrudModal" />
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/crud.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

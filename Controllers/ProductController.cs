@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DemoMVC.Data;
@@ -6,7 +5,8 @@ using DemoMVC.Models;
 
 namespace DemoMVC.Controllers
 {
-    public class ProductController : Controller
+    // Bài 11: CRUD sản phẩm bằng Modal + Ajax
+    public class ProductController : AjaxCrudController
     {
         private readonly ApplicationDbContext _context;
 
@@ -16,73 +16,51 @@ namespace DemoMVC.Controllers
         }
 
         // =========================
-        // GET: Product
+        // GET: Product (trang khung, bảng được nạp bằng Ajax)
         // =========================
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Products.ToListAsync());
-        }
-
-
-        // =========================
-        // GET: Product/Details/5
-        // =========================
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
-        }
-
-
-        // =========================
-        // GET: Product/Create
-        // =========================
-        public IActionResult Create()
+        public IActionResult Index()
         {
             return View();
         }
 
 
         // =========================
-        // POST: Product/Create
+        // GET: Product/List (Ajax)
         // =========================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Product product)
+        public async Task<IActionResult> List()
         {
-            if (ModelState.IsValid)
-            {
-                _context.Products.Add(product);
+            var products = await _context.Products
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
 
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(product);
+            return PartialView("_Table", products);
         }
 
 
         // =========================
-        // GET: Product/Edit/5
+        // GET: Product/Details/5 (Ajax)
         // =========================
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Details(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return PartialView("_Details", product);
+        }
+
+
+        // =========================
+        // GET: Product/Form hoặc Product/Form/5 (Ajax)
+        // =========================
+        public async Task<IActionResult> Form(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                return PartialView("_Form", new Product());
             }
 
             var product = await _context.Products.FindAsync(id);
@@ -92,76 +70,68 @@ namespace DemoMVC.Controllers
                 return NotFound();
             }
 
-            return View(product);
+            return PartialView("_Form", product);
         }
 
 
         // =========================
-        // POST: Product/Edit/5
+        // POST: Product/Save (Ajax) - Id = 0 là thêm mới, khác 0 là sửa
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
-            int id,
-            Product product)
+        public async Task<IActionResult> Save([Bind("Id,Name,Price")] Product input)
         {
-            if (id != product.Id)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return FormWithErrors(input);
             }
 
-            if (ModelState.IsValid)
+            if (input.Id == 0)
             {
-                _context.Update(product);
+                input.CreatedAt = DateTime.UtcNow;
+                _context.Products.Add(input);
 
                 await _context.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Index));
+                return JsonOk($"Đã thêm sản phẩm {input.Name}");
             }
 
-            return View(product);
-        }
-
-
-        // =========================
-        // GET: Product/Delete/5
-        // =========================
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.Id == id);
+            // Sửa: lấy bản ghi trong CSDL để giữ nguyên ngày tạo
+            var product = await _context.Products.FindAsync(input.Id);
 
             if (product == null)
             {
-                return NotFound();
+                return JsonFail("Sản phẩm không còn tồn tại");
             }
 
-            return View(product);
+            product.Name = input.Name;
+            product.Price = input.Price;
+
+            await _context.SaveChangesAsync();
+
+            return JsonOk($"Đã cập nhật sản phẩm {product.Name}");
         }
 
 
         // =========================
-        // POST: Product/Delete/5
+        // POST: Product/Delete/5 (Ajax)
         // =========================
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var product = await _context.Products.FindAsync(id);
 
-            if (product != null)
+            if (product == null)
             {
-                _context.Products.Remove(product);
-
-                await _context.SaveChangesAsync();
+                return JsonFail("Sản phẩm không còn tồn tại");
             }
 
-            return RedirectToAction(nameof(Index));
+            _context.Products.Remove(product);
+
+            await _context.SaveChangesAsync();
+
+            return JsonOk($"Đã xoá sản phẩm {product.Name}");
         }
     }
 }

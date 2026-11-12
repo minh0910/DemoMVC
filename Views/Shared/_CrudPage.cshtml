@@ -1,0 +1,13 @@
+@* Buổi 11: khung trang danh sách dùng chung *@
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">@ViewData["Title"]</h1>
+    <button class="btn btn-primary" data-modal="@Url.Action("Form")">+ Thêm @ViewData["Entity"]</button>
+</div>
+@if (ViewData["Hint"] is string hint)
+{
+    <p class="text-muted">@Html.Raw(hint)</p>
+}
+
+<div id="tableContainer" data-url="@Url.Action("List")">
+    <div class="text-center text-muted py-5">Đang tải dữ liệu...</div>
+</div>

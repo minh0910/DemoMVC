@@ -1,0 +1,12 @@
+@* Buổi 11: khung xem chi tiết trong modal *@
+<div class="modal-header">
+    <h2 class="modal-title h5">@ViewData["Title"]</h2>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+</div>
+<div class="modal-body">
+    @RenderBody()
+</div>
+<div class="modal-footer">
+    @RenderSection("Footer", required: false)
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+</div>

@@ -1,0 +1,31 @@
+@model DemoMVC.Models.Faculty
+@{
+    Layout = "_ModalDetails";
+    ViewData["Title"] = Model.Name;
+}
+<dl class="row">
+    <dt class="col-sm-4">Mã khoa</dt>
+    <dd class="col-sm-8"><code>@Model.FacultyCode</code></dd>
+    <dt class="col-sm-4">Số sinh viên</dt>
+    <dd class="col-sm-8">
+        @Model.Students.Count
+        <a class="ms-2" asp-controller="Student" asp-action="Index" asp-route-facultyCode="@Model.FacultyCode">Xem danh sách</a>
+    </dd>
+</dl>
+<h2 class="h6">Các ngành thuộc khoa</h2>
+@if (!Model.Majors.Any())
+{
+    <p class="text-muted mb-0">Chưa có ngành nào.</p>
+}
+else
+{
+    <ul class="mb-0">
+        @foreach (var major in Model.Majors.OrderBy(m => m.MajorCode))
+        {
+            <li><code>@major.MajorCode</code> - @major.Name</li>
+        }
+    </ul>
+}
+@section Footer {
+    <button class="btn btn-warning" data-modal="@Url.Action("Form", new { id = Model.FacultyCode })">Sửa</button>
+}

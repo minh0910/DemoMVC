@@ -1,0 +1,28 @@
+@model DemoMVC.Models.Major
+@{
+    Layout = "_ModalForm";
+    ViewData["Entity"] = "ngành";
+    var isEdit = ViewData["IsEdit"] is true;
+}
+<input type="hidden" name="isEdit" value="@(isEdit ? "true" : "false")" />
+<div class="mb-3">
+    <label asp-for="MajorCode" class="form-label"></label>
+    <input asp-for="MajorCode" class="form-control font-monospace" maxlength="2" readonly="@isEdit" />
+    <span asp-validation-for="MajorCode" class="text-danger"></span>
+    @if (isEdit)
+    {
+        <div class="form-text">Mã ngành nằm trong mã sinh viên nên không sửa được</div>
+    }
+</div>
+<div class="mb-3">
+    <label asp-for="Name" class="form-label"></label>
+    <input asp-for="Name" class="form-control" />
+    <span asp-validation-for="Name" class="text-danger"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="FacultyCode" class="form-label"></label>
+    <select asp-for="FacultyCode" asp-items="ViewBag.FacultyList" class="form-select">
+        <option value="">-- Chọn khoa --</option>
+    </select>
+    <span asp-validation-for="FacultyCode" class="text-danger"></span>
+</div>

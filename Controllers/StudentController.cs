@@ -7,7 +7,8 @@ using DemoMVC.Services;
 
 namespace DemoMVC.Controllers
 {
-    public class StudentController : Controller
+    // Bài 11: CRUD sinh viên bằng Modal + Ajax
+    public class StudentController : AjaxCrudController
     {
         private readonly ApplicationDbContext _context;
         private readonly StudentCodeGenerator _codeGenerator;
@@ -19,9 +20,22 @@ namespace DemoMVC.Controllers
         }
 
         // =========================
-        // GET: Student?facultyCode=CNTT&keyword=an
+        // GET: Student?facultyCode=CNTT (Bài 11: trang khung, bảng được nạp bằng Ajax)
         // =========================
-        public async Task<IActionResult> Index(string? facultyCode, string? keyword)
+        public async Task<IActionResult> Index(string? facultyCode)
+        {
+            ViewBag.FacultyList = new SelectList(
+                await _context.Faculties.OrderBy(f => f.Name).ToListAsync(),
+                nameof(Faculty.FacultyCode), nameof(Faculty.Name), facultyCode);
+
+            return View();
+        }
+
+
+        // =========================
+        // GET: Student/List?facultyCode=CNTT&keyword=an (Ajax)
+        // =========================
+        public async Task<IActionResult> List(string? facultyCode, string? keyword)
         {
             var query = _context.Students
                 .Include(s => s.Faculty)         // JOIN sang bảng Khoa qua FacultyCode
@@ -39,25 +53,15 @@ namespace DemoMVC.Controllers
                 query = query.Where(s => s.FullName.Contains(tuKhoa) || s.StudentCode.Contains(tuKhoa));
             }
 
-            ViewBag.FacultyList = new SelectList(
-                await _context.Faculties.OrderBy(f => f.Name).ToListAsync(),
-                nameof(Faculty.FacultyCode), nameof(Faculty.Name), facultyCode);
-            ViewBag.Keyword = keyword;
-
-            return View(await query.OrderBy(s => s.StudentCode).ToListAsync());
+            return PartialView("_Table", await query.OrderBy(s => s.StudentCode).ToListAsync());
         }
 
 
         // =========================
-        // GET: Student/Details/2821050199
+        // GET: Student/Details/2821050199 (Ajax)
         // =========================
-        public async Task<IActionResult> Details(string? id)
+        public async Task<IActionResult> Details(string id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var student = await _context.Students
                 .Include(s => s.Faculty)
                 .Include(s => s.Major)
@@ -68,46 +72,71 @@ namespace DemoMVC.Controllers
                 return NotFound();
             }
 
-            return View(student);
+            return PartialView("_Details", student);
         }
 
 
         // =========================
-        // GET: Student/Create
+        // GET: Student/Form hoặc Student/Form/2821050199 (Ajax)
         // =========================
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Form(string? id)
         {
-            var student = new Student
+            Student? student;
+
+            if (id == null)
             {
-                EnrollmentYear = DateTime.Now.Year,
-                TrainingSystemCode = "21",
-            };
+                student = new Student
+                {
+                    EnrollmentYear = DateTime.Now.Year,
+                    TrainingSystemCode = "21",
+                };
+            }
+            else
+            {
+                student = await _context.Students
+                    .Include(s => s.Faculty)
+                    .Include(s => s.Major)
+                    .FirstOrDefaultAsync(s => s.StudentCode == id);
+
+                if (student == null)
+                {
+                    return NotFound();
+                }
+
+                ViewData["IsEdit"] = true;
+            }
 
             await LoadDropDownsAsync(student);
 
-            return View(student);
+            return PartialView("_Form", student);
         }
 
 
         // =========================
-        // POST: Student/Create
-        // Không nhận StudentCode từ form: mã được sinh tự động ở server
+        // POST: Student/Save (Ajax)
+        // Thêm mới: không nhận StudentCode từ form, mã được sinh tự động ở server.
+        // Sửa: năm nhập học, hệ, khoa, ngành đã nằm trong mã sinh viên nên chỉ cho sửa thông tin cá nhân
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(
-            [Bind("FullName,DateOfBirth,Email,EnrollmentYear,TrainingSystemCode,FacultyCode,MajorCode")] Student student)
+        public async Task<IActionResult> Save(bool isEdit, string? studentCode,
+            [Bind("FullName,DateOfBirth,Email,EnrollmentYear,TrainingSystemCode,FacultyCode,MajorCode")] Student input)
         {
+            if (isEdit)
+            {
+                return await UpdateAsync(studentCode);
+            }
+
             ModelState.Remove(nameof(Student.StudentCode));
 
-            await ValidateCodesAsync(student);
+            await ValidateCodesAsync(input);
 
             if (ModelState.IsValid)
             {
                 // Thử lại nếu 2 người thêm cùng lúc và lấy trùng mã (lỗi trùng khoá chính)
                 for (var lanThu = 1; lanThu <= 3; lanThu++)
                 {
-                    var code = await _codeGenerator.GenerateAsync(student.EnrollmentYear, student.TrainingSystemCode, student.MajorCode);
+                    var code = await _codeGenerator.GenerateAsync(input.EnrollmentYear, input.TrainingSystemCode, input.MajorCode);
 
                     if (code == null)
                     {
@@ -115,27 +144,59 @@ namespace DemoMVC.Controllers
                         break;
                     }
 
-                    student.StudentCode = code;
-                    _context.Students.Add(student);
+                    input.StudentCode = code;
+                    _context.Students.Add(input);
 
                     try
                     {
                         await _context.SaveChangesAsync();
 
-                        TempData["ThongBao"] = $"Đã thêm sinh viên {student.FullName}, mã sinh viên {student.StudentCode}";
+                        var maTiepTheo = await _codeGenerator.GenerateAsync(input.EnrollmentYear, input.TrainingSystemCode, input.MajorCode);
 
-                        return RedirectToAction(nameof(Index));
+                        return JsonOk($"Đã thêm sinh viên {input.FullName}, mã sinh viên {input.StudentCode}. Sinh viên tiếp theo sẽ có mã {maTiepTheo}");
                     }
                     catch (DbUpdateException) when (lanThu < 3)
                     {
-                        _context.Entry(student).State = EntityState.Detached;
+                        _context.Entry(input).State = EntityState.Detached;
                     }
                 }
             }
 
+            await LoadDropDownsAsync(input);
+
+            return FormWithErrors(input);
+        }
+
+        private async Task<IActionResult> UpdateAsync(string? studentCode)
+        {
+            var student = await _context.Students
+                .Include(s => s.Faculty)
+                .Include(s => s.Major)
+                .FirstOrDefaultAsync(s => s.StudentCode == studentCode);
+
+            if (student == null)
+            {
+                return JsonFail("Sinh viên không còn tồn tại");
+            }
+
+            // Bỏ lỗi của các ô không được sửa (đã bị khoá trên form)
+            foreach (var key in new[] { nameof(Student.EnrollmentYear), nameof(Student.TrainingSystemCode), nameof(Student.FacultyCode), nameof(Student.MajorCode), nameof(Student.StudentCode) })
+            {
+                ModelState.Remove(key);
+            }
+
+            if (await TryUpdateModelAsync(student, "", s => s.FullName, s => s.DateOfBirth, s => s.Email))
+            {
+                await _context.SaveChangesAsync();
+
+                return JsonOk($"Đã cập nhật sinh viên {student.StudentCode}");
+            }
+
+            ViewData["IsEdit"] = true;
+
             await LoadDropDownsAsync(student);
 
-            return View(student);
+            return FormWithErrors(student);
         }
 
 
@@ -160,108 +221,24 @@ namespace DemoMVC.Controllers
 
 
         // =========================
-        // GET: Student/Edit/2821050199
+        // POST: Student/Delete/2821050199 (Ajax)
         // =========================
-        public async Task<IActionResult> Edit(string? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var student = await _context.Students
-                .Include(s => s.Faculty)
-                .Include(s => s.Major)
-                .FirstOrDefaultAsync(s => s.StudentCode == id);
-
-            if (student == null)
-            {
-                return NotFound();
-            }
-
-            return View(student);
-        }
-
-
-        // =========================
-        // POST: Student/Edit/2821050199
-        // Năm nhập học, hệ, khoa, ngành đã nằm trong mã sinh viên nên chỉ cho sửa thông tin cá nhân
-        // =========================
-        [HttpPost, ActionName("Edit")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPost(string? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var student = await _context.Students
-                .Include(s => s.Faculty)
-                .Include(s => s.Major)
-                .FirstOrDefaultAsync(s => s.StudentCode == id);
-
-            if (student == null)
-            {
-                return NotFound();
-            }
-
-            if (await TryUpdateModelAsync(student, "", s => s.FullName, s => s.DateOfBirth, s => s.Email))
-            {
-                await _context.SaveChangesAsync();
-
-                TempData["ThongBao"] = $"Đã cập nhật sinh viên {student.StudentCode}";
-
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(student);
-        }
-
-
-        // =========================
-        // GET: Student/Delete/2821050199
-        // =========================
-        public async Task<IActionResult> Delete(string? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var student = await _context.Students
-                .Include(s => s.Faculty)
-                .Include(s => s.Major)
-                .FirstOrDefaultAsync(s => s.StudentCode == id);
-
-            if (student == null)
-            {
-                return NotFound();
-            }
-
-            return View(student);
-        }
-
-
-        // =========================
-        // POST: Student/Delete/2821050199
-        // =========================
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        public async Task<IActionResult> Delete(string id)
         {
             var student = await _context.Students.FindAsync(id);
 
-            if (student != null)
+            if (student == null)
             {
-                _context.Students.Remove(student);
-
-                await _context.SaveChangesAsync();
-
-                TempData["ThongBao"] = $"Đã xoá sinh viên {student.StudentCode} - {student.FullName}";
+                return JsonFail("Sinh viên không còn tồn tại");
             }
 
-            return RedirectToAction(nameof(Index));
+            _context.Students.Remove(student);
+
+            await _context.SaveChangesAsync();
+
+            return JsonOk($"Đã xoá sinh viên {student.StudentCode} - {student.FullName}");
         }
 
 

@@ -1,0 +1,18 @@
+@model DemoMVC.Models.Product
+@{
+    Layout = "_ModalDetails";
+    ViewData["Title"] = Model.Name;
+}
+<dl class="row mb-0">
+    <dt class="col-sm-4">Mã</dt>
+    <dd class="col-sm-8">@Model.Id</dd>
+    <dt class="col-sm-4">Tên sản phẩm</dt>
+    <dd class="col-sm-8">@Model.Name</dd>
+    <dt class="col-sm-4">Giá</dt>
+    <dd class="col-sm-8">@Model.Price.ToString("N0") đ</dd>
+    <dt class="col-sm-4">Ngày tạo</dt>
+    <dd class="col-sm-8 mb-0">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+</dl>
+@section Footer {
+    <button class="btn btn-warning" data-modal="@Url.Action("Form", new { id = Model.Id })">Sửa</button>
+}

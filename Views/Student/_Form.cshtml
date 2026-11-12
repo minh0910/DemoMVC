@@ -1,0 +1,93 @@
+@model DemoMVC.Models.Student
+@{
+    Layout = "_ModalForm";
+    ViewData["Entity"] = "sinh viên";
+    var isEdit = ViewData["IsEdit"] is true;
+}
+<input type="hidden" name="isEdit" value="@(isEdit ? "true" : "false")" />
+<input type="hidden" name="studentCode" value="@Model.StudentCode" />
+
+<div class="row">
+    <div class="col-md-6">
+        <h2 class="h6">Thông tin cá nhân</h2>
+
+        <div class="mb-3">
+            <label asp-for="FullName" class="form-label"></label>
+            <input asp-for="FullName" class="form-control" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="DateOfBirth" class="form-label"></label>
+            <input asp-for="DateOfBirth" class="form-control" />
+            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <h2 class="h6">Thông tin đào tạo (dùng để sinh mã)</h2>
+
+        @if (isEdit)
+        {
+            @* Năm, hệ, khoa, ngành đã nằm trong mã sinh viên nên không cho sửa *@
+            <dl class="row mb-0">
+                <dt class="col-5">Mã sinh viên</dt>
+                <dd class="col-7"><code>@Model.StudentCode</code></dd>
+                <dt class="col-5">Năm nhập học</dt>
+                <dd class="col-7">@Model.EnrollmentYear</dd>
+                <dt class="col-5">Hệ đào tạo</dt>
+                <dd class="col-7">@TrainingSystems.GetName(Model.TrainingSystemCode)</dd>
+                <dt class="col-5">Khoa</dt>
+                <dd class="col-7">@Model.Faculty?.Name</dd>
+                <dt class="col-5">Ngành</dt>
+                <dd class="col-7">@Model.Major?.Name</dd>
+            </dl>
+            <p class="form-text">Các thông tin này nằm trong mã sinh viên nên không sửa được.</p>
+        }
+        else
+        {
+            <div class="mb-3">
+                <label asp-for="EnrollmentYear" class="form-label"></label>
+                <input asp-for="EnrollmentYear" class="form-control" min="2000" max="2099" />
+                <span asp-validation-for="EnrollmentYear" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TrainingSystemCode" class="form-label"></label>
+                <select asp-for="TrainingSystemCode" asp-items="ViewBag.TrainingSystemList" class="form-select">
+                    <option value="">-- Chọn hệ đào tạo --</option>
+                </select>
+                <span asp-validation-for="TrainingSystemCode" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="FacultyCode" class="form-label"></label>
+                <select asp-for="FacultyCode" asp-items="ViewBag.FacultyList" class="form-select">
+                    <option value="">-- Chọn khoa --</option>
+                </select>
+                <span asp-validation-for="FacultyCode" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MajorCode" class="form-label"></label>
+                <select asp-for="MajorCode" class="form-select" data-selected="@Model.MajorCode"
+                        data-majors='@Json.Serialize(ViewBag.Majors)'>
+                    <option value="">-- Chọn khoa trước --</option>
+                </select>
+                <span asp-validation-for="MajorCode" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="codePreview">Mã sinh viên (dự kiến)</label>
+                <input id="codePreview" class="form-control fw-bold font-monospace" readonly placeholder="Chọn năm, hệ và ngành để xem mã" />
+                <div class="form-text">Mã chính thức được sinh ở server khi bấm Lưu.</div>
+            </div>
+        }
+    </div>
+</div>

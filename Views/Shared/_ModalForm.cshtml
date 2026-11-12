@@ -1,0 +1,15 @@
+@* Buổi 11: khung form trong modal. Trang _Form của từng bảng dùng file này làm Layout *@
+<form action="@Url.Action("Save")" method="post" class="ajax-form" novalidate>
+    <div class="modal-header">
+        <h2 class="modal-title h5">@((bool)(ViewData["IsEdit"] ?? false) ? "Sửa" : "Thêm") @ViewData["Entity"]</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+    </div>
+    <div class="modal-body">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        @RenderBody()
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Huỷ</button>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+</form>

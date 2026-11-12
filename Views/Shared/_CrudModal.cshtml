@@ -1,0 +1,27 @@
+@* Buổi 11: modal dùng chung cho Thêm / Sửa / Chi tiết / Xoá, nội dung nạp bằng Ajax *@
+<div class="modal fade" id="crudModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content"></div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title h5">Xác nhận xoá</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body"><p id="confirmText" class="mb-0"></p></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Huỷ</button>
+                <button type="button" class="btn btn-danger" id="confirmOk">Xoá</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3" id="ajaxToasts"></div>
+
+@* Token chống giả mạo request cho các lệnh POST gửi bằng Ajax (ví dụ Xoá) *@
+<form id="antiForgeryForm" class="d-none">@Html.AntiForgeryToken()</form>

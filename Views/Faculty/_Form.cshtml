@@ -1,0 +1,18 @@
+@model DemoMVC.Models.Faculty
+@{
+    Layout = "_ModalForm";
+    ViewData["Entity"] = "khoa";
+    var isEdit = ViewData["IsEdit"] is true;
+}
+<input type="hidden" name="isEdit" value="@(isEdit ? "true" : "false")" />
+<div class="mb-3">
+    <label asp-for="FacultyCode" class="form-label"></label>
+    <input asp-for="FacultyCode" class="form-control font-monospace" readonly="@isEdit" />
+    <span asp-validation-for="FacultyCode" class="text-danger"></span>
+    <div class="form-text">@(isEdit ? "Mã khoa là khoá chính nên không sửa được" : "Ví dụ: CNTT, MO, DKNL")</div>
+</div>
+<div class="mb-3">
+    <label asp-for="Name" class="form-label"></label>
+    <input asp-for="Name" class="form-control" />
+    <span asp-validation-for="Name" class="text-danger"></span>
+</div>
