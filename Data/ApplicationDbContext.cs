@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using DemoMVC.Models;
 
 namespace DemoMVC.Data
 {
-    public class ApplicationDbContext : DbContext
+    // Bài 13: kế thừa IdentityDbContext để có thêm các bảng AspNetUsers, AspNetRoles, AspNetUserRoles...
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

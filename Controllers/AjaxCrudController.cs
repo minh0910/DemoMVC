@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DemoMVC.Controllers
@@ -10,6 +11,8 @@ namespace DemoMVC.Controllers
     //  - Details(id)  : partial _Details hiển thị trong modal
     //  - Save         : thành công trả JSON, lỗi validation trả lại _Form (HTTP 400) để hiện lỗi trong modal
     //  - Delete       : trả JSON
+    // Bài 13: các trang quản lý dữ liệu phải đăng nhập mới vào được
+    [Authorize]
     public abstract class AjaxCrudController : Controller
     {
         protected IActionResult JsonOk(string message) => Json(new { success = true, message });

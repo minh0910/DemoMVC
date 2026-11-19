@@ -34,13 +34,23 @@ jobs:
       - name: Tạo appsettings.Production.json từ secret
         env:
           DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+          # Bài 13: mật khẩu admin mặc định và tài khoản SMTP gửi mail (không bắt buộc)
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         run: |
           # Repo public nên connection string (có mật khẩu) để trong secret, không commit vào code
           if [ -z "$DB_CONNECTION_STRING" ]; then
             echo "::warning::Chưa có secret DB_CONNECTION_STRING, trang Product sẽ không kết nối được CSDL"
             exit 0
           fi
-          jq -n --arg cs "$DB_CONNECTION_STRING" '{ConnectionStrings: {DefaultConnection: $cs}}' > ./publish/appsettings.Production.json
+          jq -n --arg cs "$DB_CONNECTION_STRING" --arg admin "$ADMIN_PASSWORD" \
+                --arg host "$SMTP_HOST" --arg user "$SMTP_USERNAME" --arg pass "$SMTP_PASSWORD" '
+            {ConnectionStrings: {DefaultConnection: $cs}}
+            + (if $admin != "" then {DefaultUsers: [{Password: $admin}]} else {} end)
+            + (if $host != "" then {Smtp: {Host: $host, UserName: $user, Password: $pass, SenderEmail: $user}} else {} end)
+          ' > ./publish/appsettings.Production.json
 
       - name: Cài lftp
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp

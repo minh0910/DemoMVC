@@ -483,3 +483,6 @@ $RECYCLE.BIN/
 
 # macOS
 .DS_Store
+
+# Bài 13: email lưu ra file khi chưa cấu hình SMTP
+App_Data/
