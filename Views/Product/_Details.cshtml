@@ -1,0 +1,7 @@
+@model DemoMVC.Models.Product
+
+<dl class="row">
+    <dt class="col-sm-4">Tên sản phẩm</dt><dd class="col-sm-8">@Model.Name</dd>
+    <dt class="col-sm-4">Giá</dt><dd class="col-sm-8">@Model.Price.ToString("N0")</dd>
+    <dt class="col-sm-4">Ngày tạo</dt><dd class="col-sm-8">@Model.CreatedAt</dd>
+</dl>

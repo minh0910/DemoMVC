@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DemoMVC.Data;
@@ -10,158 +9,100 @@ namespace DemoMVC.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public ProductController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        public ProductController(ApplicationDbContext context) => _context = context;
 
-        // =========================
-        // GET: Product
-        // =========================
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Products.ToListAsync());
-        }
+        private bool IsAjaxRequest() =>
+            Request.Headers["X-Requested-With"] == "XMLHttpRequest";
 
+        public async Task<IActionResult> Index() =>
+            View(await _context.Products.ToListAsync());
 
-        // =========================
-        // GET: Product/Details/5
-        // =========================
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
+            if (id == null) return NotFound();
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+            if (product == null) return NotFound();
+            return IsAjaxRequest() ? PartialView("_Details", product) : View(product);
         }
 
-
-        // =========================
-        // GET: Product/Create
-        // =========================
         public IActionResult Create()
         {
-            return View();
+            var product = new Product();
+            return IsAjaxRequest() ? PartialView("_Create", product) : View(product);
         }
 
-
-        // =========================
-        // POST: Product/Create
-        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Product product)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Products.Add(product);
-
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(Index));
+                return IsAjaxRequest()
+                    ? PartialView("_Create", product)
+                    : View(product);
             }
 
-            return View(product);
+            _context.Products.Add(product);
+            await _context.SaveChangesAsync();
+            TempData["ThongBao"] = "Đã thêm sản phẩm.";
+
+            return IsAjaxRequest()
+                ? Json(new { success = true, message = "Đã thêm sản phẩm." })
+                : RedirectToAction(nameof(Index));
         }
 
-
-        // =========================
-        // GET: Product/Edit/5
-        // =========================
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
+            if (id == null) return NotFound();
             var product = await _context.Products.FindAsync(id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
+            if (product == null) return NotFound();
+            return IsAjaxRequest() ? PartialView("_Edit", product) : View(product);
         }
 
-
-        // =========================
-        // POST: Product/Edit/5
-        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
-            int id,
-            Product product)
+        public async Task<IActionResult> Edit(int id, Product product)
         {
-            if (id != product.Id)
+            if (id != product.Id) return NotFound();
+
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return IsAjaxRequest()
+                    ? PartialView("_Edit", product)
+                    : View(product);
             }
 
-            if (ModelState.IsValid)
-            {
-                _context.Update(product);
+            _context.Update(product);
+            await _context.SaveChangesAsync();
+            TempData["ThongBao"] = "Đã cập nhật sản phẩm.";
 
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(product);
+            return IsAjaxRequest()
+                ? Json(new { success = true, message = "Đã cập nhật sản phẩm." })
+                : RedirectToAction(nameof(Index));
         }
 
-
-        // =========================
-        // GET: Product/Delete/5
-        // =========================
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
+            if (id == null) return NotFound();
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+            if (product == null) return NotFound();
+            return IsAjaxRequest() ? PartialView("_Delete", product) : View(product);
         }
 
-
-        // =========================
-        // POST: Product/Delete/5
-        // =========================
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var product = await _context.Products.FindAsync(id);
+            if (product == null) return NotFound();
 
-            if (product != null)
-            {
-                _context.Products.Remove(product);
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync();
+            TempData["ThongBao"] = "Đã xoá sản phẩm.";
 
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction(nameof(Index));
+            return IsAjaxRequest()
+                ? Json(new { success = true, message = "Đã xoá sản phẩm." })
+                : RedirectToAction(nameof(Index));
         }
     }
 }

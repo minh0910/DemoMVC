@@ -1,0 +1,11 @@
+@model DemoMVC.Models.Product
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+    <p>Bạn có chắc muốn xoá sản phẩm <strong>@Model.Name</strong>?</p>
+    <div class="text-end">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+        <button type="submit" class="btn btn-danger">Xoá</button>
+    </div>
+</form>
