@@ -1,0 +1,8 @@
+@model DemoMVC.Models.Faculty
+<form asp-action="Create" method="post" data-modal-title="Thêm khoa">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3"><label asp-for="FacultyCode" class="form-label"></label><input asp-for="FacultyCode" class="form-control" placeholder="Ví dụ: CNTT" /><div class="form-text">Chữ cái không dấu và chữ số; mã tự chuyển thành in hoa.</div><span asp-validation-for="FacultyCode" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Name" class="form-label"></label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name" class="text-danger"></span></div>
+    <div class="text-end"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button> <button type="submit" class="btn btn-primary">Lưu</button></div>
+</form>

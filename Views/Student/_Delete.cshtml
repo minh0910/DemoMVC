@@ -1,0 +1,8 @@
+@model DemoMVC.Models.Student
+<form asp-action="Delete" asp-route-id="@Model.StudentCode" method="post" data-modal-title="Xóa sinh viên">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.StudentCode" />
+    <div class="alert alert-warning">Bạn có chắc muốn xóa sinh viên này?</div>
+    <dl class="row"><dt class="col-sm-4">Mã sinh viên</dt><dd class="col-sm-8"><code>@Model.StudentCode</code></dd><dt class="col-sm-4">Họ tên</dt><dd class="col-sm-8">@Model.FullName</dd><dt class="col-sm-4">Ngày sinh</dt><dd class="col-sm-8">@Html.DisplayFor(m => m.DateOfBirth)</dd><dt class="col-sm-4">Khoa</dt><dd class="col-sm-8">@Model.Faculty?.Name</dd><dt class="col-sm-4">Ngành</dt><dd class="col-sm-8">@Model.Major?.Name</dd></dl>
+    <div class="text-end"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button> <button type="submit" class="btn btn-danger">Xóa</button></div>
+</form>

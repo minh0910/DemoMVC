@@ -1,0 +1,9 @@
+@model DemoMVC.Models.Major
+@{ var studentCount = (int)ViewBag.StudentCount; var canDelete = studentCount == 0; }
+<form asp-action="Delete" asp-route-id="@Model.MajorCode" method="post" data-modal-title="Xóa ngành">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.MajorCode" />
+    <dl class="row"><dt class="col-sm-4">Mã ngành</dt><dd class="col-sm-8"><code>@Model.MajorCode</code></dd><dt class="col-sm-4">Tên ngành</dt><dd class="col-sm-8">@Model.Name</dd><dt class="col-sm-4">Khoa</dt><dd class="col-sm-8">@Model.Faculty?.Name</dd><dt class="col-sm-4">Số sinh viên</dt><dd class="col-sm-8">@studentCount</dd></dl>
+    @if (canDelete) { <div class="alert alert-warning">Bạn có chắc muốn xóa ngành này?</div> } else { <div class="alert alert-danger">Không thể xóa ngành đang có sinh viên tham chiếu.</div> }
+    <div class="text-end"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button> <button type="submit" class="btn btn-danger" disabled="@(!canDelete)">Xóa</button></div>
+</form>

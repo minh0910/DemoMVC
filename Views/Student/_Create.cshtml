@@ -1,0 +1,20 @@
+@model DemoMVC.Models.Student
+<form asp-action="Create" method="post" data-modal-title="Thêm sinh viên" data-majors="@Json.Serialize(ViewBag.Majors)" data-next-code-url="@Url.Action("NextCode")">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3"><label asp-for="FullName" class="form-label"></label><input asp-for="FullName" class="form-control" /><span asp-validation-for="FullName" class="text-danger"></span></div>
+            <div class="mb-3"><label asp-for="DateOfBirth" class="form-label"></label><input asp-for="DateOfBirth" class="form-control" type="date" /><span asp-validation-for="DateOfBirth" class="text-danger"></span></div>
+            <div class="mb-3"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email" class="text-danger"></span></div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3"><label asp-for="EnrollmentYear" class="form-label"></label><input asp-for="EnrollmentYear" class="form-control" min="2000" max="2099" /><span asp-validation-for="EnrollmentYear" class="text-danger"></span></div>
+            <div class="mb-3"><label asp-for="TrainingSystemCode" class="form-label"></label><select asp-for="TrainingSystemCode" asp-items="ViewBag.TrainingSystemList" class="form-select"><option value="">-- Chọn hệ đào tạo --</option></select><span asp-validation-for="TrainingSystemCode" class="text-danger"></span></div>
+            <div class="mb-3"><label asp-for="FacultyCode" class="form-label"></label><select asp-for="FacultyCode" asp-items="ViewBag.FacultyList" class="form-select"><option value="">-- Chọn khoa --</option></select><span asp-validation-for="FacultyCode" class="text-danger"></span></div>
+            <div class="mb-3"><label asp-for="MajorCode" class="form-label"></label><select asp-for="MajorCode" class="form-select" data-selected="@Model.MajorCode"><option value="">-- Chọn khoa trước --</option></select><span asp-validation-for="MajorCode" class="text-danger"></span></div>
+            <div class="mb-3"><label class="form-label" for="codePreview">Mã sinh viên (dự kiến)</label><input id="codePreview" class="form-control font-monospace" readonly placeholder="Chọn năm, hệ và ngành" /></div>
+        </div>
+    </div>
+    <div class="text-end"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button> <button type="submit" class="btn btn-primary">Lưu</button></div>
+</form>

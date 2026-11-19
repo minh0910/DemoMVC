@@ -1,0 +1,14 @@
+@model DemoMVC.Models.Student
+<form asp-action="Edit" asp-route-id="@Model.StudentCode" method="post" data-modal-title="Sửa sinh viên">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3"><label asp-for="FullName" class="form-label"></label><input asp-for="FullName" class="form-control" /><span asp-validation-for="FullName" class="text-danger"></span></div>
+            <div class="mb-3"><label asp-for="DateOfBirth" class="form-label"></label><input asp-for="DateOfBirth" class="form-control" type="date" /><span asp-validation-for="DateOfBirth" class="text-danger"></span></div>
+            <div class="mb-3"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email" class="text-danger"></span></div>
+        </div>
+        <div class="col-md-6"><h3 class="h6">Thông tin đào tạo (không thể sửa)</h3><dl class="row"><dt class="col-5">Mã sinh viên</dt><dd class="col-7"><code>@Model.StudentCode</code></dd><dt class="col-5">Năm nhập học</dt><dd class="col-7">@Model.EnrollmentYear</dd><dt class="col-5">Hệ đào tạo</dt><dd class="col-7">@TrainingSystems.GetName(Model.TrainingSystemCode)</dd><dt class="col-5">Khoa</dt><dd class="col-7">@Model.Faculty?.Name</dd><dt class="col-5">Ngành</dt><dd class="col-7">@Model.Major?.Name</dd></dl></div>
+    </div>
+    <div class="text-end"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button> <button type="submit" class="btn btn-primary">Lưu thay đổi</button></div>
+</form>

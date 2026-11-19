@@ -1,0 +1,6 @@
+@model DemoMVC.Models.Faculty
+<dl class="row"><dt class="col-sm-4">Mã khoa</dt><dd class="col-sm-8"><code>@Model.FacultyCode</code></dd><dt class="col-sm-4">Tên khoa</dt><dd class="col-sm-8">@Model.Name</dd></dl>
+<h3 class="h6">Ngành đào tạo (@Model.Majors.Count)</h3>
+@if (Model.Majors.Any()) { <ul>@foreach (var major in Model.Majors.OrderBy(m => m.MajorCode)) { <li><code>@major.MajorCode</code> — @major.Name</li> }</ul> } else { <p class="text-muted">Chưa có ngành đào tạo.</p> }
+<h3 class="h6">Sinh viên (@Model.Students.Count)</h3>
+@if (Model.Students.Any()) { <ul class="mb-0">@foreach (var student in Model.Students.OrderBy(s => s.StudentCode)) { <li><code>@student.StudentCode</code> — @student.FullName (@student.Major?.Name)</li> }</ul> } else { <p class="text-muted mb-0">Chưa có sinh viên.</p> }
