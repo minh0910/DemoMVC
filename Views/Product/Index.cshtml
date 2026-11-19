@@ -1,34 +1,25 @@
 @model IEnumerable<DemoMVC.Models.Product>
 
+@{ ViewData["Title"] = "Danh sách sản phẩm"; }
+
 <h1>Danh sách sản phẩm</h1>
+<p><button type="button" class="btn btn-primary" data-ajax-modal="@Url.Action("Create")">Thêm sản phẩm</button></p>
 
-<p>
-    <a asp-action="Create">Thêm sản phẩm</a>
-</p>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Tên sản phẩm</th>
-            <th>Giá</th>
-            <th>Thao tác</th>
-        </tr>
-    </thead>
-
+<div id="ajax-crud-table" class="table-responsive">
+<table class="table table-striped table-hover align-middle">
+    <thead><tr><th>ID</th><th>Tên sản phẩm</th><th>Giá</th><th>Thao tác</th></tr></thead>
     <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.Id</td>
-                <td>@item.Name</td>
-                <td>@item.Price</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.Id">Xem</a> |
-                    <a asp-action="Edit" asp-route-id="@item.Id">Sửa</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Xóa</a>
-                </td>
-            </tr>
-        }
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Id</td><td>@item.Name</td><td>@item.Price</td>
+            <td class="text-nowrap">
+                <button type="button" class="btn btn-sm btn-outline-info" data-ajax-modal="@Url.Action("Details", new { id = item.Id })">Xem</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-ajax-modal="@Url.Action("Edit", new { id = item.Id })">Sửa</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-ajax-modal="@Url.Action("Delete", new { id = item.Id })">Xóa</button>
+            </td>
+        </tr>
+    }
     </tbody>
 </table>
+</div>

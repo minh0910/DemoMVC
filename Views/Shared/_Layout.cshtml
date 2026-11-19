@@ -15,8 +15,7 @@
         <nav class="navbar navbar-expand-xl navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
                 <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">DemoMVC</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse">
@@ -48,11 +47,10 @@
         </main>
     </div>
 
+    <partial name="_AjaxCrudModal" />
+
     <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - DemoMVC - Tìm hiểu ASP.NET Core MVC
-        </div>
-    </footer>
+        <div class="container">&copy; 2026 - DemoMVC - Tìm hiểu ASP.NET Core MVC</footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
