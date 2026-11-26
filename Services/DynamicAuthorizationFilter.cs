@@ -1,85 +1,76 @@
 using DemoMVC.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace DemoMVC.Services
 {
-    public class DynamicAuthorizationFilter : IAsyncAuthorizationFilter
+    /// <summary>Checks the current user's role grants against the permission for each MVC action.</summary>
+    public sealed class DynamicAuthorizationFilter : IAsyncAuthorizationFilter
     {
         private readonly ApplicationDbContext _context;
 
-        public DynamicAuthorizationFilter(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        public DynamicAuthorizationFilter(ApplicationDbContext context) => _context = context;
 
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
-            var endpoint = context.HttpContext.GetEndpoint();
-            if (endpoint?.Metadata.GetMetadata<IAllowAnonymous>() != null)
-            {
+            var descriptor = context.ActionDescriptor as ControllerActionDescriptor;
+            if (descriptor == null)
                 return;
-            }
 
-            var mvcDescriptor = context.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor;
-            if (mvcDescriptor == null)
-            {
+            // AllowAnonymous is honored whether it is declared on the endpoint, action or controller.
+            if (context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<IAllowAnonymous>() != null
+                || descriptor.MethodInfo.GetCustomAttributes(typeof(AllowAnonymousAttribute), inherit: true).Length > 0
+                || descriptor.ControllerTypeInfo.GetCustomAttributes(typeof(AllowAnonymousAttribute), inherit: true).Length > 0)
                 return;
-            }
 
-            var user = context.HttpContext.User;
-            if (user.Identity?.IsAuthenticated != true)
+            var principal = context.HttpContext.User;
+            if (principal.Identity?.IsAuthenticated != true)
             {
                 context.Result = new ChallengeResult();
                 return;
             }
 
-            // Tài khoản Admin luôn có toàn quyền.
-            if (user.IsInRole("Admin"))
-            {
-                return;
-            }
-
-            var controller = mvcDescriptor.ControllerName;
-            var action = mvcDescriptor.ActionName;
-
-            var permission = await _context.Permissions
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Controller == controller && p.Action == action);
-
-            if (permission == null)
+            var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
             {
                 context.Result = new ForbidResult();
                 return;
             }
 
-            var roleNames = user.Claims
-                .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role)
-                .Select(c => c.Value)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            // Always read current role membership from the database, so role changes take effect immediately
+            // and cannot be bypassed with stale role claims in an existing authentication cookie.
+            var currentRoleIds = _context.UserRoles.AsNoTracking()
+                .Where(userRole => userRole.UserId == userId)
+                .Select(userRole => userRole.RoleId);
 
-            if (roleNames.Count == 0)
+            var isAdmin = await _context.Roles.AsNoTracking()
+                .AnyAsync(role => role.Name == "Admin" && currentRoleIds.Contains(role.Id));
+            if (isAdmin)
+                return;
+
+            var controllerName = descriptor.ControllerName;
+            var actionName = descriptor.ActionName;
+            var permissionId = await _context.Permissions.AsNoTracking()
+                .Where(permission => permission.Controller == controllerName && permission.Action == actionName)
+                .Select(permission => (int?)permission.Id)
+                .SingleOrDefaultAsync();
+
+            if (permissionId == null)
             {
                 context.Result = new ForbidResult();
                 return;
             }
 
-            var roleIds = await _context.Roles
-                .AsNoTracking()
-                .Where(r => roleNames.Contains(r.Name!))
-                .Select(r => r.Id)
-                .ToListAsync();
-
-            var allowed = await _context.RolePermissions
-                .AsNoTracking()
-                .AnyAsync(rp => rp.PermissionId == permission.Id && roleIds.Contains(rp.RoleId));
+            var allowed = await _context.RolePermissions.AsNoTracking()
+                .AnyAsync(rolePermission => rolePermission.PermissionId == permissionId.Value
+                    && currentRoleIds.Contains(rolePermission.RoleId));
 
             if (!allowed)
-            {
                 context.Result = new ForbidResult();
-            }
         }
     }
 }
