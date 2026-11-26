@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DemoMVC.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class RoleController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -18,7 +18,7 @@ namespace DemoMVC.Controllers
             _roleManager = roleManager;
         }
 
-        public async Task<IActionViewResult?> Index()
+        public async Task<IActionResult> Index()
         {
             var roles = await _roleManager.Roles.OrderBy(r => r.Name).ToListAsync();
             return View(roles);
@@ -29,38 +29,64 @@ namespace DemoMVC.Controllers
         public async Task<IActionResult> Create(string name)
         {
             name = name?.Trim() ?? string.Empty;
+
             if (string.IsNullOrWhiteSpace(name))
             {
-                TempData["Error"] = "Tên role không được để trống";
+                TempData["Error"] = "Tên role không được để trống.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (await _roleManager.RoleExistsAsync(name))
+            {
+                TempData["Error"] = $"Role '{name}' đã tồn tại.";
                 return RedirectToAction(nameof(Index));
             }
 
             var result = await _roleManager.CreateAsync(new IdentityRole(name));
             TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
-                ? $"Đã tạo role {name}"
+                ? $"Đã tạo role '{name}'."
                 : string.Join("; ", result.Errors.Select(e => e.Description));
+
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Rename(string id, string name)
+        public async Task<IActionResult> Update(string id, string name)
         {
-            var role = await _roleManager.FindByIdAsync(id);
-            if (role == null) return NotFound();
-
             name = name?.Trim() ?? string.Empty;
+            var role = await _roleManager.FindByIdAsync(id);
+
+            if (role == null)
+                return NotFound();
+
             if (role.Name == "Admin")
             {
-                TempData["Error"] = "Không thể đổi tên role Admin";
+                TempData["Error"] = "Không thể đổi tên role Admin.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                TempData["Error"] = "Tên role không được để trống.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (!string.Equals(role.Name, name, StringComparison.OrdinalIgnoreCase)
+                && await _roleManager.RoleExistsAsync(name))
+            {
+                TempData["Error"] = $"Role '{name}' đã tồn tại.";
                 return RedirectToAction(nameof(Index));
             }
 
             role.Name = name;
+            role.NormalizedName = name.ToUpperInvariant();
+
             var result = await _roleManager.UpdateAsync(role);
             TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
-                ? "Đã cập nhật role"
+                ? "Đã cập nhật role."
                 : string.Join("; ", result.Errors.Select(e => e.Description));
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -69,49 +95,69 @@ namespace DemoMVC.Controllers
         public async Task<IActionResult> Delete(string id)
         {
             var role = await _roleManager.FindByIdAsync(id);
-            if (role == null) return NotFound();
+            if (role == null)
+                return NotFound();
+
             if (role.Name == "Admin")
             {
-                TempData["Error"] = "Không thể xoá role Admin";
+                TempData["Error"] = "Không thể xoá role Admin.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var usersInRole = await _context.UserRoles.AnyAsync(ur => ur.RoleId == role.Id);
+            if (usersInRole)
+            {
+                TempData["Error"] = "Role này đang được gán cho người dùng; hãy gỡ Role trước khi xoá.";
                 return RedirectToAction(nameof(Index));
             }
 
             var result = await _roleManager.DeleteAsync(role);
             TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
-                ? "Đã xoá role"
+                ? "Đã xoá role."
                 : string.Join("; ", result.Errors.Select(e => e.Description));
+
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Permissions(string id)
         {
             var role = await _roleManager.FindByIdAsync(id);
-            if (role == null) return NotFound();
+            if (role == null)
+                return NotFound();
 
             var permissions = await _context.Permissions
                 .Include(p => p.RolePermissions)
-                .OrderBy(p => p.Controller).ThenBy(p => p.Action).ToListAsync();
+                .OrderBy(p => p.Controller)
+                .ThenBy(p => p.Action)
+                .ToListAsync();
 
             ViewBag.Role = role;
             ViewBag.SelectedIds = permissions
                 .Where(p => p.RolePermissions.Any(rp => rp.RoleId == role.Id))
-                .Select(p => p.Id).ToHashSet();
+                .Select(p => p.Id)
+                .ToHashSet();
+
             return View(permissions);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdatePermissions(string id, int[] permissionIds)
+        public async Task<IActionResult> UpdatePermissions(string id, int[]? permissionIds)
         {
             var role = await _roleManager.FindByIdAsync(id);
-            if (role == null) return NotFound();
+            if (role == null)
+                return NotFound();
 
-            var existing = await _context.RolePermissions.Where(rp => rp.RoleId == role.Id).ToListAsync();
+            var existing = await _context.RolePermissions
+                .Where(rp => rp.RoleId == role.Id)
+                .ToListAsync();
             _context.RolePermissions.RemoveRange(existing);
 
+            permissionIds ??= Array.Empty<int>();
             var validIds = await _context.Permissions
                 .Where(p => permissionIds.Contains(p.Id))
-                .Select(p => p.Id).ToListAsync();
+                .Select(p => p.Id)
+                .ToListAsync();
 
             _context.RolePermissions.AddRange(validIds.Select(permissionId => new RolePermission
             {
@@ -120,7 +166,7 @@ namespace DemoMVC.Controllers
             }));
 
             await _context.SaveChangesAsync();
-            TempData["Success"] = "Đã cập nhật phân quyền";
+            TempData["Success"] = "Đã cập nhật phân quyền.";
             return RedirectToAction(nameof(Permissions), new { id });
         }
     }
