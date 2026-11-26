@@ -131,7 +131,6 @@ namespace DemoMVC.Data
 
         private static bool IsProtectedAction(ControllerActionDescriptor descriptor)
         {
-            // Những action có AllowAnonymous ở class hoặc method không tham gia phân quyền động.
             return descriptor.MethodInfo.GetCustomAttribute<Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute>() == null
                 && descriptor.ControllerTypeInfo.GetCustomAttribute<Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute>() == null;
         }

@@ -8,7 +8,6 @@ using System.Security.Claims;
 
 namespace DemoMVC.Services
 {
-    /// <summary>Checks the current user's role grants against the permission for each MVC action.</summary>
     public sealed class DynamicAuthorizationFilter : IAsyncAuthorizationFilter
     {
         private readonly ApplicationDbContext _context;
@@ -21,7 +20,6 @@ namespace DemoMVC.Services
             if (descriptor == null)
                 return;
 
-            // AllowAnonymous is honored whether it is declared on the endpoint, action or controller.
             if (context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<IAllowAnonymous>() != null
                 || descriptor.MethodInfo.GetCustomAttributes(typeof(AllowAnonymousAttribute), inherit: true).Length > 0
                 || descriptor.ControllerTypeInfo.GetCustomAttributes(typeof(AllowAnonymousAttribute), inherit: true).Length > 0)
@@ -41,8 +39,6 @@ namespace DemoMVC.Services
                 return;
             }
 
-            // Always read current role membership from the database, so role changes take effect immediately
-            // and cannot be bypassed with stale role claims in an existing authentication cookie.
             var currentRoleIds = _context.UserRoles.AsNoTracking()
                 .Where(userRole => userRole.UserId == userId)
                 .Select(userRole => userRole.RoleId);
@@ -52,10 +48,9 @@ namespace DemoMVC.Services
             if (isAdmin)
                 return;
 
-            var controllerName = descriptor.ControllerName;
-            var actionName = descriptor.ActionName;
             var permissionId = await _context.Permissions.AsNoTracking()
-                .Where(permission => permission.Controller == controllerName && permission.Action == actionName)
+                .Where(permission => permission.Controller == descriptor.ControllerName
+                    && permission.Action == descriptor.ActionName)
                 .Select(permission => (int?)permission.Id)
                 .SingleOrDefaultAsync();
 
