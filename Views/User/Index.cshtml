@@ -2,32 +2,83 @@
 @{
     ViewData["Title"] = "Gán Role cho người dùng";
     var allRoles = (IEnumerable<Microsoft.AspNetCore.Identity.IdentityRole>)ViewBag.AllRoles;
+    var keyword = ViewBag.Keyword as string;
 }
-<h2>Gán Role cho người dùng</h2>
-@if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
-@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
-<table class="table table-bordered align-middle">
-    <thead><tr><th>Người dùng</th><th>Email</th><th>Roles</th></tr></thead>
-    <tbody>
-    @foreach (var row in Model)
-    {
-        <tr>
-            <td>@(row.User.FullName ?? row.User.UserName)</td>
-            <td>@row.User.Email</td>
-            <td>
-                <form asp-action="UpdateRoles" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="userId" value="@row.User.Id" />
-                    @foreach (var role in allRoles)
+
+<h2 class="mb-3">Gán Role cho người dùng</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" role="alert">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger" role="alert">@TempData["Error"]</div>
+}
+
+<form asp-controller="User" asp-action="Index" method="get" class="row g-2 mb-3">
+    <div class="col-sm-8 col-md-5">
+        <input name="keyword" value="@keyword" class="form-control" placeholder="Tìm theo tên, username hoặc email" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">Tìm kiếm</button>
+        <a asp-controller="User" asp-action="Index" class="btn btn-outline-secondary">Xoá lọc</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Người dùng</th>
+                <th>Email</th>
+                <th>Role hiện tại</th>
+                <th>Gán Role</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var row in Model)
+        {
+            <tr>
+                <td>@(row.User.FullName ?? row.User.UserName)</td>
+                <td>@row.User.Email</td>
+                <td>
+                    @if (row.Roles.Count == 0)
                     {
-                        <label class="me-3">
-                            <input type="checkbox" name="roleNames" value="@role.Name" @(row.Roles.Contains(role.Name!) ? "checked" : null) /> @role.Name
-                        </label>
+                        <span class="text-muted">Chưa có Role</span>
                     }
-                    <button class="btn btn-sm btn-primary">Lưu</button>
-                </form>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+                    else
+                    {
+                        @foreach (var roleName in row.Roles)
+                        {
+                            <span class="badge bg-secondary me-1">@roleName</span>
+                        }
+                    }
+                </td>
+                <td>
+                    <form asp-controller="User" asp-action="UpdateRoles" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="userId" value="@row.User.Id" />
+                        <input type="hidden" name="keyword" value="@keyword" />
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            @foreach (var role in allRoles)
+                            {
+                                var isChecked = row.Roles.Contains(role.Name!, StringComparer.OrdinalIgnoreCase);
+                                <label class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input" type="checkbox" name="roleNames" value="@role.Name" checked="@isChecked" />
+                                    <span class="form-check-label">@role.Name</span>
+                                </label>
+                            }
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">Lưu Role</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr><td colspan="4" class="text-center text-muted">Không tìm thấy người dùng.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>
