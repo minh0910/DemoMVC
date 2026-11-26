@@ -1,0 +1,40 @@
+@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityRole>
+@{
+    ViewData["Title"] = "Quản lý Role";
+}
+<h2>Quản lý Role</h2>
+@if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+<form asp-action="Create" method="post" class="row g-2 mb-3">
+    @Html.AntiForgeryToken()
+    <div class="col-auto"><input name="name" class="form-control" placeholder="Tên role mới" /></div>
+    <div class="col-auto"><button class="btn btn-primary">Thêm Role</button></div>
+</form>
+<table class="table table-bordered align-middle">
+    <thead><tr><th>Tên Role</th><th class="text-end">Thao tác</th></tr></thead>
+    <tbody>
+    @foreach (var role in Model)
+    {
+        <tr>
+            <td>@role.Name</td>
+            <td class="text-end">
+                @if (role.Name != "Admin")
+                {
+                    <form asp-action="Rename" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@role.Id" />
+                        <input name="name" value="@role.Name" class="form-control d-inline-block w-auto" />
+                        <button class="btn btn-sm btn-warning">Đổi tên</button>
+                    </form>
+                    <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Xoá role này?')">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@role.Id" />
+                        <button class="btn btn-sm btn-danger">Xoá</button>
+                    </form>
+                }
+                <a asp-action="Permissions" asp-route-id="@role.Id" class="btn btn-sm btn-info">Phân quyền</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -1,0 +1,29 @@
+@model IEnumerable<DemoMVC.Models.Permission>
+@{
+    ViewData["Title"] = "Phân quyền";
+    var role = (Microsoft.AspNetCore.Identity.IdentityRole)ViewBag.Role;
+    var selected = (HashSet<int>)ViewBag.SelectedIds;
+}
+<h2>Phân quyền cho role: @role.Name</h2>
+<form asp-action="UpdatePermissions" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@role.Id" />
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+            <thead><tr><th></th><th>Controller</th><th>Action</th><th>Mô tả</th></tr></thead>
+            <tbody>
+            @foreach (var permission in Model)
+            {
+                <tr>
+                    <td><input type="checkbox" name="permissionIds" value="@permission.Id" @(selected.Contains(permission.Id) ? "checked" : null) /></td>
+                    <td>@permission.Controller</td>
+                    <td>@permission.Action</td>
+                    <td>@permission.DisplayName</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <button class="btn btn-primary">Lưu phân quyền</button>
+    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+</form>

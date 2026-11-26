@@ -1,0 +1,33 @@
+@model IEnumerable<DemoMVC.Controllers.UserRoleViewModel>
+@{
+    ViewData["Title"] = "Gán Role cho người dùng";
+    var allRoles = (IEnumerable<Microsoft.AspNetCore.Identity.IdentityRole>)ViewBag.AllRoles;
+}
+<h2>Gán Role cho người dùng</h2>
+@if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+<table class="table table-bordered align-middle">
+    <thead><tr><th>Người dùng</th><th>Email</th><th>Roles</th></tr></thead>
+    <tbody>
+    @foreach (var row in Model)
+    {
+        <tr>
+            <td>@(row.User.FullName ?? row.User.UserName)</td>
+            <td>@row.User.Email</td>
+            <td>
+                <form asp-action="UpdateRoles" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="userId" value="@row.User.Id" />
+                    @foreach (var role in allRoles)
+                    {
+                        <label class="me-3">
+                            <input type="checkbox" name="roleNames" value="@role.Name" @(row.Roles.Contains(role.Name!) ? "checked" : null) /> @role.Name
+                        </label>
+                    }
+                    <button class="btn btn-sm btn-primary">Lưu</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
